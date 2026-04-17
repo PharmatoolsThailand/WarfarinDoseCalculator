@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warfarin Dose Calculator by Endo-Pharma</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="Assets/CSS/style.css">
+    <link rel="icon" type="image/png" sizes="192x192" href="Assets/Images/logo-endo.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="Assets/Images/logo-endo.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="Assets/Images/logo-endo.png">
+</head>
+<body>
+
+    <div class="main-header">
+        <h1>💊 คำนวณขนาดยา Warfarin</h1>
+        <p>เครื่องมือนี้สร้างขึ้นเพื่ออำนวยความสะดวกในการทำ Regimen ยา Warfarin</p>
+    </div>
+
+    <div class="calculator-container">
+
+        <div class="guideline-section">
+            <div class="guideline-title">📋 ตารางแนวทางการปรับขนาดยา Warfarin</div>
+            <div class="table-responsive">
+                <table class="guideline-table">
+                    <thead>
+                        <tr>
+                            <th>Keep<br>2.0 - 3.0</th>
+                            <th>Keep<br>2.5 - 3.5</th>
+                            <th>แนวทางการปรับยา Warfarin</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>&lt; 1.5</td><td>&lt; 1.9</td><td>เพิ่มขนาดยา 10 - 20 %</td></tr>
+                        <tr><td>1.5 - 1.9</td><td>1.9 - 2.4</td><td>เพิ่มขนาดยา 5 - 10 %</td></tr>
+                        <tr class="highlight-row"><td>2.0 - 3.0</td><td>2.5 - 3.5</td><td><strong>ใช้ยาขนาดเดิม</strong></td></tr>
+                        <tr><td>3.1 - 3.9</td><td>3.6 - 4.5</td><td>ลดขนาดยา 5 - 10 %</td></tr>
+                        <tr><td>4.0 - 4.9</td><td>4.6 - 4.9</td><td>Hold 1 day + ลดขนาดยา 10 %</td></tr>
+                        <tr><td colspan="2" class="merged-cell">5.0 - 8.9 no Bleeding</td><td>Omit 1 - 2 doses + Vitamin K 1 mg orally</td></tr>
+                        <tr><td colspan="2" class="merged-cell">&ge; 9 no Bleeding</td><td>Vitamin K 5 - 10 mg orally</td></tr>
+                        <tr><td colspan="2" class="merged-cell">Major Bleeding<br>Any INR</td><td>Vitamin K 10 mg IV plus FFP<br><span class="text-small">Repeat Vitamin K q 12 hr if needed</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="references">
+                <p><strong>อ้างอิง:</strong></p>
+                <ol>
+                    <li>University of Wisconsin – UW Health. Warfarin Management-Adult-Inpatient Clinical Practice 2011.</li>
+                    <li>สมาคมแพทย์โรคหัวใจแห่งประเทศไทยฯ แนวทางการรักษาผู้ป่วยด้วยยาต้านการแข็งตัวของเลือดชนิดรับประทาน 2553.</li>
+                    <li>สุภารัตน์ วัฒนสมบัติ (โรงพยาบาลเชียงรายประชานุเคราะห์) common pitfall in warfarin management. 2560.</li>
+                </ol>
+            </div>
+        </div>
+        <div class="guideline-title">🧮 เครื่องมือคำนวณขนาดยา Warfarin</div>
+        <div class="input-section">
+            <div class="input-row">
+                <label for="currentDose"><span class="medical-icon">💊</span> ขนาดยาปัจจุบัน <span class="text-red">(เลือก)</span></label>
+                <div class="select-group">
+                    <button class="btn-step" onclick="stepDose('currentDose', -0.5)">-</button>
+                    <select id="currentDose"></select>
+                    <button class="btn-step" onclick="stepDose('currentDose', 0.5)">+</button>
+                    <span class="unit">mg/wk</span>
+                </div>
+            </div>
+
+            <div class="input-row">
+                <label for="targetDose"><span class="medical-icon">💊</span> ขนาดยาที่ต้องการ <span class="text-red">(เลือก)</span></label>
+                <div class="select-group">
+                    <button class="btn-step" onclick="stepDose('targetDose', -0.5)">-</button>
+                    <select id="targetDose"></select>
+                    <button class="btn-step" onclick="stepDose('targetDose', 0.5)">+</button>
+                    <span class="unit">mg/wk</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-grid">
+            <button class="btn-pct btn-increase" onclick="applyPercent(5)">+5%</button>
+            <button class="btn-pct btn-increase" onclick="applyPercent(10)">+10%</button>
+            <button class="btn-pct btn-increase" onclick="applyPercent(15)">+15%</button>
+            <button class="btn-pct btn-increase" onclick="applyPercent(20)">+20%</button>
+
+            <button class="btn-pct btn-decrease" onclick="applyPercent(-5)">-5%</button>
+            <button class="btn-pct btn-decrease" onclick="applyPercent(-10)">-10%</button>
+            <button class="btn-pct btn-decrease" onclick="applyPercent(-20)">-20%</button>
+            <button class="btn-pct btn-decrease" onclick="applyPercent(-15)">-15%</button>
+        </div>
+
+        <div class="results-container">
+            <div class="result-card">
+                <p>ความเปลี่ยนแปลงจริง (%)</p>
+                <h3 id="actualPercent">-</h3>
+            </div>
+            <div class="result-card">
+                <p>ขนาดยาที่เปลี่ยนแปลง (mg/week)</p>
+                <h3 id="newDoseDisplay">-</h3>
+            </div>
+        </div>
+
+        <div class="regimen-wrapper">
+            <h3 class="regimen-title">📝 Regimen ที่แนะนำ</h3>
+
+            <div class="pill-selection-text">เลือกขนาดยาที่มีในโรงพยาบาล</div>
+            <div class="pill-selectors">
+                <label class="pill-checkbox-label active" id="lbl-pill-2">
+                    <input type="checkbox" id="chk-2" checked onchange="updatePillState(2)">
+                    <div class="pill-icon" style="background-color: #f28b30;"></div>
+                    <span>เม็ด 2 mg</span>
+                </label>
+                <label class="pill-checkbox-label active" id="lbl-pill-3">
+                    <input type="checkbox" id="chk-3" checked onchange="updatePillState(3)">
+                    <div class="pill-icon" style="background-color: #0b5394;"></div>
+                    <span>เม็ด 3 mg</span>
+                </label>
+                <label class="pill-checkbox-label active" id="lbl-pill-5">
+                    <input type="checkbox" id="chk-5" checked onchange="updatePillState(5)">
+                    <div class="pill-icon" style="background-color: #e84c95;"></div>
+                    <span>เม็ด 5 mg</span>
+                </label>
+            </div>
+
+            <div class="table-responsive">
+                <table class="regimen-table">
+                    <thead>
+                        <tr>
+                            <th>เลือก</th>
+                            <th>จันทร์</th>
+                            <th>อังคาร</th>
+                            <th>พุธ</th>
+                            <th>พฤหัส</th>
+                            <th>ศุกร์</th>
+                            <th>เสาร์</th>
+                            <th>อาทิตย์</th>
+                        </tr>
+                    </thead>
+                    <tbody id="regimen-tbody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="dispense-wrapper">
+            <h3 class="regimen-title">📦 คำนวณจำนวนยาที่ต้องจ่าย</h3>
+
+            <div class="dispense-options">
+                <label class="dispense-options-label">รูปแบบการหยิบยา:</label>
+                <div class="toggle-group">
+                    <input type="radio" id="dispense-combine" name="dispenseType" value="combine" checked onchange="calculateDispense()">
+                    <label for="dispense-combine" class="toggle-btn">รวมซอง (ปกติ)</label>
+
+                    <input type="radio" id="dispense-separate" name="dispenseType" value="separate" onchange="calculateDispense()">
+                    <label for="dispense-separate" class="toggle-btn">แยกซอง (เต็มเม็ด / ครึ่งเม็ด)</label>
+                </div>
+            </div>
+
+            <div class="dispense-inputs">
+                <div class="input-group">
+                    <label for="dispenseDays">จำนวนวัน (วัน)</label>
+                    <input type="number" id="dispenseDays" min="1" value="30" oninput="updateDateFromDays()">
+                </div>
+                <div class="input-group">
+                    <label for="dispenseDate">หรือระบุวันนัด</label>
+                    <input type="date" id="dispenseDate" onchange="updateDaysFromDate()">
+                </div>
+            </div>
+
+            <div id="dispenseResult" class="dispense-result-container">
+                </div>
+        </div>
+
+    </div>
+
+    <footer class="main-footer">
+        <div class="footer-content">
+            <p>พัฒนาและออกแบบโดย: <span class="highlight-green">Endo-Pharma : by เภสัชกรเอ็นดู</span></p>
+            <p class="developer-info">ผู้พัฒนา นาย ระพีพัฒน์ ศุภโกศล การศึกษาระดับปริญญาตรี คณะเภสัชศาสตร์ มหาวิทยาลัยมหาสารคาม</p>
+            <p class="footer-note">เครื่องมือนี้สร้างขึ้นเพื่ออำนวยความสะดวกในการทำ Regimen ยา Warfarin</p>
+            <p class="footer-version">เวอร์ชัน 1.1.0 | สงวนลิขสิทธิ์ © 2026</p>
+        </div>
+    </footer>
+
+    <script src="Assets/JS/script.js"></script>
+</body>
+</html>
