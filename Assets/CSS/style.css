@@ -154,9 +154,14 @@ body {
 .btn-step:hover { background-color: #e2e8f0; color: #0f172a; border-color: #94a3b8; }
 .btn-step:active { transform: scale(0.95); }
 
-/* ช่องกรอกตัวเลขและวันที่ */
-input[type="number"], input[type="date"], select {
-    -webkit-appearance: none;
+/* =========================================
+   อัปเดต: ตกแต่งช่องกรอกตัวเลข วันที่ และเดือน
+   ========================================= */
+input[type="number"],
+input[type="date"],
+input[type="month"],
+select {
+    -webkit-appearance: none; /* บังคับให้ iOS ไม่ใช้สไตล์เก่าของตัวเอง */
     -moz-appearance: none;
     appearance: none;
     background-color: #fff;
@@ -171,6 +176,63 @@ input[type="number"], input[type="date"], select {
     color: #1e293b;
     font-weight: 500;
     min-width: 0;
+    width: 100%;
+}
+
+/* กรณีช่องที่เป็นวันที่/เดือน ให้มี cursor: pointer เพื่อให้รู้ว่ากดได้ */
+input[type="date"],
+input[type="month"] {
+    cursor: pointer;
+}
+
+input:focus,
+select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(13, 123, 108, 0.15);
+    background-color: #f8fafc; /* พื้นหลังสว่างขึ้นนิดนึงเวลาพิมพ์/เลือก */
+}
+
+/* =========================================
+   การปรับแต่งเฉพาะสำหรับ Date / Month Picker
+   (รองรับ iOS และ Chrome ให้หน้าตาสมูทขึ้น)
+   ========================================= */
+
+/* 1. จัดกึ่งกลางข้อความวันที่ใน iOS Safari ให้เป๊ะขึ้น */
+input[type="date"]::-webkit-datetime-edit,
+input[type="month"]::-webkit-datetime-edit {
+    display: flex;
+    align-items: center;
+    padding-top: 0;
+    color: #1e293b;
+    line-height: 1.5;
+}
+
+/* 2. ปรับแต่งไอคอนปฏิทินที่ติดมากับ Browser (บน Desktop / Android) ให้ดูละมุน */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator {
+    background-color: transparent;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    padding: 4px;
+    border-radius: 4px;
+    /* แอบปรับสีไอคอนปฏิทินเดิมให้กลืนกับสีหลักของเรา (ถ้า Browser อนุญาต) */
+    filter: hue-rotate(160deg) saturate(1.5);
+}
+
+/* เอฟเฟกต์ตอนชี้เมาส์ที่ไอคอนปฏิทิน */
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="month"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+    background-color: #f1f5f9;
+    transform: scale(1.1);
+}
+
+/* ซ่อนปุ่มล้างค่า (Clear button) ใน iOS บางรุ่นที่ทำให้เสียทรง */
+input[type="date"]::-webkit-clear-button,
+input[type="month"]::-webkit-clear-button {
+    display: none;
 }
 
 .select-group select {
@@ -410,3 +472,276 @@ input:focus, select:focus { outline: none; border-color: var(--primary-color); b
     .result-card h3 { font-size: 13px; }
     .toggle-btn { font-size: 9px; padding: 8px 2px; }
 }
+
+/* =========================================
+   ตกแต่งปุ่ม 1/4 เม็ด
+   ========================================= */
+.quarter-toggle {
+    margin-left: auto; /* ดันปุ่มไปชิดขวา */
+    cursor: pointer;
+}
+.quarter-toggle input {
+    display: none; /* ซ่อน Checkbox มาตรฐาน */
+}
+.quarter-btn-content {
+    display: flex; align-items: center; gap: 8px;
+    background-color: #fff;
+    color: #64748b;
+    border: 1px dashed #cbd5e1;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+.quarter-toggle input:checked + .quarter-btn-content {
+    background-color: #ecfdf5; /* พื้นหลังสีเขียวอ่อนตอนกด */
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    box-shadow: 0 2px 8px rgba(13, 123, 108, 0.15);
+}
+.quarter-toggle:hover .quarter-btn-content {
+    border-color: #94a3b8;
+}
+.quarter-toggle input:checked + .quarter-btn-content .quarter-icon {
+    transform: scale(1.1); /* ขยายไอคอนกรรไกรนิดนึงเวลากด */
+}
+
+/* =========================================
+   หน้าตาปฏิทิน (Preview บนหน้าเว็บให้เหมือนกระดาษ)
+   ========================================= */
+.calendar-wrapper { margin-top: 40px; border-top: 2px dashed #cbd5e1; padding-top: 20px;}
+
+#calendar-print-area {
+    display: none; /* ถูกควบคุมการโชว์ด้วย JS (display: flex) */
+    flex-direction: column; /* ให้เนื้อหาเรียงลงมา และตารางยืดได้ */
+    margin: 20px auto 40px auto;
+    background: #fff;
+    padding: 15px 20px;
+    border-radius: 2px; /* ขอบคมๆ เหมือนแผ่นกระดาษ */
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-width: 900px; /* ขยายให้กว้างขึ้น เพื่อให้ดูเป็นแนวนอน */
+    aspect-ratio: 297 / 210; /* 🔴 ล็อกสัดส่วนให้เป็นกระดาษ A4 แนวนอนเป๊ะๆ */
+    box-sizing: border-box;
+}
+
+.cal-header {
+    text-align: center;
+    margin-bottom: 10px;
+    flex-shrink: 0; /* ป้องกันไม่ให้หัวกระดาษถูกบีบ */
+}
+.cal-header h2 { margin: 0; color: var(--primary-color); font-size: 20px; }
+.cal-header p { margin: 4px 0 0 0; color: #64748b; font-size: 14px; }
+
+.cal-grid {
+    width: 100%;
+    flex-grow: 1; /* 🔴 สั่งให้ตารางยืดขยายจนเต็มความสูงกระดาษที่เหลือ */
+    border-collapse: collapse;
+    border: 2px solid var(--primary-color);
+    table-layout: fixed;
+    background-color: #fff;
+}
+
+.cal-grid th, .cal-grid td { border: 1px solid #cbd5e1; }
+
+.cal-day-name {
+    background-color: var(--primary-color);
+    color: white;
+    text-align: center;
+    font-weight: 600;
+    padding: 5px;
+    font-size: 13px;
+    height: 30px;
+}
+
+.cal-cell {
+    height: auto; /* ให้ตารางจัดการความสูงช่องเอง */
+    vertical-align: top;
+    padding: 4px;
+    background-color: #fff;
+    overflow: hidden;
+}
+.cal-cell.empty { background-color: #f8fafc; }
+
+.cal-date {
+    font-weight: bold;
+    font-size: 13px;
+    color: #475569;
+    text-align: left;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 2px;
+    margin-bottom: 4px;
+}
+
+.cal-pill-area {
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 2px;
+}
+
+/* =========================================
+   หน้าตาพรีวิวปฏิทินบนหน้าเว็บ
+   ========================================= */
+.calendar-wrapper { margin-top: 40px; border-top: 2px dashed #cbd5e1; padding-top: 20px;}
+
+#calendar-print-area {
+    display: flex; /* ให้แสดงกล่องตลอดเวลา */
+    flex-direction: column;
+    gap: 30px;
+    margin: 20px auto 40px auto;
+    width: 100%;
+    max-width: 800px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(13, 123, 108, 0.1);
+    box-shadow: 0 10px 30px rgba(13, 123, 108, 0.05);
+    box-sizing: border-box;
+    overflow-x: auto;
+}
+
+.month-page-wrapper {
+    width: 100%;
+}
+
+.cal-header { text-align: center; margin-bottom: 15px; }
+.cal-header h2 { margin: 0; color: var(--primary-color); font-size: 20px; }
+.cal-header p { margin: 4px 0 0 0; color: #64748b; font-size: 14px; }
+
+.cal-grid { width: 100%; min-width: 650px; border-collapse: collapse; border: 2px solid var(--primary-color); table-layout: fixed;}
+.cal-grid th, .cal-grid td { border: 1px solid #cbd5e1; }
+.cal-day-name { background-color: var(--primary-color); color: white; text-align: center; font-weight: 600; padding: 6px; font-size: 14px; }
+.cal-cell { vertical-align: top; padding: 4px; background-color: #fff; height: 80px; }
+.cal-cell.empty { background-color: #f8fafc; }
+.cal-date { font-weight: bold; font-size: 13px; color: #475569; border-bottom: 1px solid #f1f5f9; padding-bottom: 2px; margin-bottom: 6px; }
+.cal-pill-area { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+
+/* =========================================
+   ปรับแต่งส่วนตั้งค่าปฏิทิน (มุมมองโทรศัพท์)
+   ========================================= */
+@media (max-width: 600px) {
+    /* ล้างค่า inline-style เดิมที่ทำให้เพี้ยนไปชิดขวา และเปลี่ยนเป็นระบบ Grid */
+    .calendar-wrapper .dispense-inputs {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr; /* จัดเป็น 2 คอลัมน์ (เดือนเริ่ม-เดือนจบ / กระดาษ-ปุ่ม) */
+        gap: 15px 10px !important;
+        align-items: flex-end !important; /* ให้กล่องเสมอกันด้านล่าง */
+    }
+
+    /* รีเซ็ตขนาดกล่องและบังคับให้จัดชิดซ้าย */
+    .calendar-wrapper .input-group {
+        min-width: 0 !important;
+        width: 100%;
+        align-items: flex-start !important;
+    }
+
+    .calendar-wrapper .input-group label {
+        font-size: 13px;
+        margin-bottom: 4px;
+        text-align: left;
+        width: 100%;
+    }
+}
+
+/* สำหรับมือถือจอเล็กมาก (เช่น หน้าจอแคบกว่า 400px) ให้ช่องขนาดกระดาษและปุ่มยายเต็มบรรทัด */
+@media (max-width: 400px) {
+    .calendar-wrapper .input-group:nth-child(3),
+    .calendar-wrapper .input-group:nth-child(4) {
+        grid-column: span 2;
+    }
+}
+
+/* =========================================
+   หน้าต่าง Changelog Modal
+   ========================================= */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(30, 41, 59, 0.6); /* พื้นหลังสีเทาเข้มโปร่งแสง */
+    display: none; /* ซ่อนไว้เป็นค่าเริ่มต้น */
+    align-items: center; justify-content: center;
+    z-index: 10000;
+    backdrop-filter: blur(3px); /* เบลอพื้นหลังเล็กน้อย */
+}
+
+.changelog-modal {
+    background: #ffffff;
+    width: 90%;
+    max-width: 520px;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    max-height: 85vh; /* ไม่ให้ล้นจอในมือถือ */
+    overflow: hidden;
+    animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes modalPop {
+    0% { transform: scale(0.9); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 18px 24px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-header h2 {
+    margin: 0; font-size: 18px; font-weight: 700; color: var(--primary-color);
+    display: flex; align-items: center; gap: 8px;
+}
+
+.close-modal {
+    background: none; border: none; font-size: 26px; font-weight: bold; color: #94a3b8;
+    cursor: pointer; transition: color 0.2s; padding: 0; line-height: 1;
+}
+.close-modal:hover { color: #ef4444; }
+
+.modal-body {
+    padding: 24px;
+    overflow-y: auto;
+}
+
+/* ปรับแต่ง Scrollbar ใน Modal ให้สวยเหมือนในรูป */
+.modal-body::-webkit-scrollbar { width: 8px; }
+.modal-body::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+.modal-body::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+.modal-body::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+.version-header {
+    margin-bottom: 8px; font-size: 15px; font-weight: 600;
+    display: flex; align-items: baseline; gap: 6px;
+}
+.version-title { color: #334155; }
+.version-title.new-version { color: var(--primary-color); }
+.version-date { color: #94a3b8; font-size: 13px; font-weight: 400; }
+
+.version-box {
+    padding: 16px; border-radius: 8px; margin-bottom: 24px;
+    font-size: 14px; color: #475569; line-height: 1.6;
+}
+.box-solid { border: 1px solid #cbd5e1; background: #ffffff; }
+.box-dashed { border: 1px dashed #cbd5e1; background: #f8fafc; }
+
+.version-box ul { margin: 0; padding-left: 20px; }
+.version-box li { margin-bottom: 6px; }
+.version-box li:last-child { margin-bottom: 0; }
+
+.modal-footer {
+    padding: 16px 24px; border-top: 1px solid #e2e8f0;
+    background: #ffffff;
+}
+
+.btn-acknowledge {
+    width: 100%; padding: 12px; border-radius: 24px; border: none;
+    background-color: var(--primary-color); color: white; font-size: 16px; font-weight: 600;
+    font-family: 'Sarabun', sans-serif; cursor: pointer; transition: background-color 0.2s;
+    box-shadow: 0 4px 10px rgba(13, 123, 108, 0.2);
+}
+.btn-acknowledge:hover { background-color: var(--secondary-color); }
+
+/* Class สำหรับเปิด Modal ด้วย JS */
+.show-modal { display: flex !important; }

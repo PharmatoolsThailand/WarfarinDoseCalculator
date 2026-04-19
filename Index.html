@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warfarin Dose Calculator by Endo-Pharma</title>
+    <title>Warfarin Dose Calculator | ระบบคำนวณขนาดยา Warfarin </title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="Assets/CSS/style.css">
     <link rel="icon" type="image/png" sizes="192x192" href="Assets/Images/logo-endo.png">
@@ -117,6 +117,13 @@
                     <div class="pill-icon" style="background-color: #e84c95;"></div>
                     <span>เม็ด 5 mg</span>
                 </label>
+                <label class="quarter-toggle">
+                    <input type="checkbox" id="chk-quarter" onchange="updateRegimens(parseFloat(document.getElementById('targetDose').value))">
+                    <div class="quarter-btn-content">
+                        <span class="quarter-icon">✂️</span>
+                        <span>อนุญาตหัก 1/4 เม็ด</span>
+                    </div>
+                </label>
             </div>
 
             <div class="table-responsive">
@@ -167,6 +174,36 @@
             <div id="dispenseResult" class="dispense-result-container">
                 </div>
         </div>
+        <div class="calendar-wrapper no-print">
+            <h3 class="regimen-title">🗓️ ปฏิทินการกินยา (สำหรับผู้ป่วย)</h3>
+
+            <div class="dispense-inputs" style="align-items: flex-end; flex-wrap: wrap; gap: 15px;">
+                <div class="input-group" style="flex: 1; min-width: 120px;">
+                    <label for="startMonth">ตั้งแต่เดือน</label>
+                    <input type="month" id="startMonth" onchange="generateCalendar()">
+                </div>
+                <div class="input-group" style="flex: 1; min-width: 120px;">
+                    <label for="endMonth">ถึงเดือน</label>
+                    <input type="month" id="endMonth" onchange="generateCalendar()">
+                </div>
+                <div class="input-group" style="flex: 1; min-width: 120px;">
+                    <label for="paperSize">ขนาดกระดาษ</label>
+                    <select id="paperSize">
+                        <option value="A4">A4 (แนวนอน)</option>
+                        <option value="A5">A5 (แนวนอน)</option>
+                    </select>
+                </div>
+                <div class="input-group" style="flex: 1; min-width: 120px;">
+                    <button class="btn-pct btn-increase" style="height: 42px; width: 100%;" onclick="printCalendar()">🖨️ พิมพ์ปฏิทิน</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="calendar-print-area">
+            <div style="text-align:center; padding: 40px; color:#64748b; font-size: 16px;">
+                กรุณากด "คำนวณขนาดยา" ก่อนเพื่อสร้างปฏิทินครับ 💊
+            </div>
+        </div>
 
     </div>
 
@@ -179,6 +216,39 @@
         </div>
     </footer>
 
+    <div id="changelogModal" class="modal-overlay">
+        <div class="changelog-modal">
+            <div class="modal-header">
+                <h2>🚀 ประวัติการอัปเดตเว็บ (Changelog)</h2>
+                <button class="close-modal" onclick="closeChangelog()">&times;</button>
+            </div>
+            <div class="modal-body">
+
+                <div class="version-header">
+                    <span class="version-title">🌱 เวอร์ชัน 1.1.0</span> <span class="version-date">(19 เมษายน 2569)</span>
+                </div>
+                <div class="version-box box-dashed">
+                    <ul>
+                        <li>เพิ่มฟังก์ชัน <strong>การหักแบ่ง 1/4 เม็ด</strong> สำหรับการจัด Regimen ยา</li>
+                        <li>เพิ่มระบบ <strong>พิมพ์ปฏิทินการกินยา</strong> สำหรับแจกให้ผู้ป่วยกลับบ้าน สำหรับกระดาษ A4 (แนวนอน) และ A5 (แนวนอน) เท่านั้น</li>
+                    </ul>
+                </div>
+
+                <div class="version-header">
+                    <span class="version-title">🥚 เวอร์ชัน 1.0.0</span> <span class="version-date">(18 เมษายน 2569)</span>
+                </div>
+                <div class="version-box box-dashed">
+                    <ul>
+                        <li>เปิดตัวเครื่องมือ<strong>คำนวณขนาดยา Warfarin</strong></li>
+                    </ul>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button class="btn-acknowledge" onclick="closeChangelog()">🎉 รับทราบและเข้าสู่ระบบ</button>
+            </div>
+        </div>
+    </div>
     <script src="Assets/JS/script.js"></script>
 </body>
 </html>
