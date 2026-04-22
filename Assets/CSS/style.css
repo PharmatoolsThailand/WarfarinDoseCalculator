@@ -745,3 +745,208 @@ input:focus, select:focus { outline: none; border-color: var(--primary-color); b
 
 /* Class สำหรับเปิด Modal ด้วย JS */
 .show-modal { display: flex !important; }
+
+/* =========================================
+   หน้าต่างกำหนดสูตรยาเอง (Custom Regimen)
+   ========================================= */
+.custom-day-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8fafc;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+.custom-day-label {
+    font-weight: 600;
+    color: #334155;
+    font-size: 15px;
+    width: 80px;
+}
+.custom-day-row select {
+    flex: 1;
+    height: 38px;
+    font-size: 15px;
+    font-weight: bold;
+    color: var(--primary-color);
+    background-color: #fff;
+}
+
+/* สไตล์ปุ่ม Stepper ใน Modal กำหนดสูตรเอง */
+.select-stepper-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    justify-content: flex-end;
+}
+
+.btn-modal-step {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background: white;
+    color: var(--primary-color);
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-modal-step:hover {
+    background-color: #f1f5f9;
+    border-color: var(--primary-color);
+}
+
+.btn-modal-step:active {
+    transform: scale(0.9);
+}
+
+.custom-day-row select {
+    flex: 1;
+    max-width: 120px; /* จำกัดความกว้างให้พอดีกับปุ่มขนาบข้าง */
+    text-align: center;
+    padding-right: 10px; /* ลด Padding เพราะเราจะเน้นดูค่าตรงกลาง */
+    background-image: none; /* เอาลูกศรเดิมออกเพื่อให้ดูคลีนขึ้น */
+}
+
+/* ส่วนเลือกยาใน Modal */
+.modal-pill-selectors {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #f1f5f9;
+    flex-wrap: wrap;
+}
+
+/* ปรับขนาดปุ่มใน Modal ให้เล็กลงนิดนึงเพื่อให้ไม่แน่นเกินไป */
+.modal-pill-selectors .pill-checkbox-label {
+    padding: 4px 10px;
+    font-size: 13px;
+}
+
+.modal-quarter-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 8px;
+}
+
+/* =========================================
+   แก้ไขการจัดวางปุ่ม 1/4 เม็ด ให้สมมาตร (Mobile & Modal)
+   ========================================= */
+
+/* 1. ยกเลิกการชิดขวาเมื่อปุ่มเข้ามาอยู่ใน Modal และบังคับจัดกึ่งกลาง */
+.modal-quarter-wrapper .quarter-toggle {
+    margin-left: 0 !important;
+    display: flex;
+    justify-content: center;
+}
+
+/* 2. ปรับแต่งสำหรับหน้าจอโทรศัพท์มือถือ (หน้าเว็บหลัก) */
+@media (max-width: 600px) {
+    /* จัดกลุ่มปุ่มเลือกเม็ดยา (2, 3, 5) ให้อยู่กึ่งกลางหน้าจอ */
+    .pill-selectors {
+        justify-content: center;
+    }
+
+    /* บังคับปุ่ม 1/4 ให้ตกมาอยู่บรรทัดใหม่ และจัดกึ่งกลางให้สมดุล */
+    .quarter-toggle {
+        margin-left: 0;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        margin-top: 8px;
+    }
+}
+
+/* =========================================
+   อัปเดตการแสดงผลหน้าจ่ายยา (Dispense)
+   ========================================= */
+
+/* ล้างค่า Mobile เดิมที่เคยสั่งให้พับบรรทัด และบังคับให้เรียงซ้าย-ขวาเสมอ */
+.dispense-result-container .pill-total-item {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    padding: 14px 0;
+    border-bottom: 1px dashed #cbd5e1;
+    gap: 10px;
+}
+
+.pill-name {
+    font-weight: 600;
+    font-size: 15px;
+    color: #334155;
+    padding-top: 2px;
+    white-space: nowrap;
+}
+
+/* กลุ่มด้านขวา: ให้เรียงซ้อนกันแนวตั้งและชิดขวา */
+.pill-details {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* จัดชิดขวา */
+    gap: 6px;
+    text-align: right;
+}
+
+/* ปรับแต่งป้ายหมายเหตุ (ซองเต็ม/ครึ่ง) */
+.pill-details .sub-text-half {
+    margin: 0 !important; /* ล้าง margin-left เดิมทิ้ง */
+    display: inline-block;
+    font-size: 12px;
+    border-color: #cbd5e1;
+}
+
+/* ปรับแต่งตัวเลขจ่ายยา */
+.pill-details .dispense-highlight {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-top: 2px;
+}
+
+/* =========================================
+   อัปเดตแก้บั๊กหน้าจ่ายยา (ล้างค่า Mobile เก่าที่กวนอยู่)
+   ========================================= */
+
+/* 1. บังคับให้กล่องหลักจัดเรียงซ้าย-ขวา และให้อยู่กึ่งกลางแนวตั้งตรงกัน */
+.dispense-result-container .pill-total-item {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 14px 0 !important;
+}
+
+/* 2. ล้างคำสั่งเก่าที่ทำให้กล่องขวาเบี้ยว และบังคับให้ชิดขวา 100% */
+.dispense-result-container .pill-total-item > div:last-child,
+.pill-details {
+    width: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important; /* บังคับชิดขวา */
+    justify-content: center !important;
+    gap: 6px !important;
+}
+
+/* 3. ปรับขนาดตัวอักษรให้พอดีกับจอมือถือ */
+.pill-details .sub-text-half {
+    margin: 0 !important;
+    font-size: 12px !important;
+}
+
+.pill-details .dispense-highlight {
+    margin: 0 !important;
+    font-size: 15px !important;
+    line-height: 1 !important;
+}

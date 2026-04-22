@@ -143,6 +143,14 @@
                     <tbody id="regimen-tbody">
                         </tbody>
                 </table>
+                    <div class="table-responsive">
+                        <table class="regimen-table"></table>
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="btn-pct" style="background-color: var(--primary-color); color: white; padding: 12px 24px; font-size: 16px; width: 100%; max-width: 300px;" onclick="openCustomModal()">
+                            🛠️ กำหนดสูตรยาเอง (Manual)
+                        </button>
+                    </div>
             </div>
         </div>
 
@@ -225,6 +233,16 @@
             <div class="modal-body">
 
                 <div class="version-header">
+                    <span class="version-title">🍀 เวอร์ชัน 1.2.0</span> <span class="version-date">(22 เมษายน 2569)</span>
+                </div>
+                <div class="version-box box-dashed">
+                    <ul>
+                        <li><strong>เพิ่มฟังก์ชันกำหนด Regimen เอง </strong> สามารถกำหนดขนาดยาต่อวันเอง และกำหนดวันงดยาเองได้ โดยตัวเลขจะซิงค์กับทุกจุดของเว็บ รวมทั้งปฏิทินการรับประทานยาด้วย</li>
+                        <li>เ<strong>แก้ไขบัค</strong> ทำให้การโชว์เลขขนาดยาถูกต้องและเหมาะสมขึ้น</li>
+                    </ul>
+                </div>
+
+                <div class="version-header">
                     <span class="version-title">🌱 เวอร์ชัน 1.1.0</span> <span class="version-date">(19 เมษายน 2569)</span>
                 </div>
                 <div class="version-box box-dashed">
@@ -242,10 +260,26 @@
                         <li>เปิดตัวเครื่องมือ<strong>คำนวณขนาดยา Warfarin</strong></li>
                     </ul>
                 </div>
-
             </div>
             <div class="modal-footer">
                 <button class="btn-acknowledge" onclick="closeChangelog()">🎉 รับทราบและเข้าสู่ระบบ</button>
+            </div>
+        </div>
+    </div>
+    <div id="customRegimenModal" class="modal-overlay">
+        <div class="changelog-modal" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>🛠️ กำหนดสูตรยาเอง</h2>
+                <button class="close-modal" onclick="closeCustomModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <p style="margin-top: 0; color: #64748b; font-size: 14px; text-align: center;">ตัวเลือกจะอ้างอิงจากเม็ดยาที่มีในโรงพยาบาล</p>
+                <div id="custom-days-container" style="display: flex; flex-direction: column; gap: 10px;">
+                    </div>
+            </div>
+            <div class="modal-footer" style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                <h3 id="custom-total-display" style="margin: 0; color: var(--primary-color); font-size: 22px;">รวม: 0.00 mg/week</h3>
+                <button class="btn-acknowledge" onclick="applyCustomRegimen()">✅ บันทึกและใช้สูตรนี้</button>
             </div>
         </div>
     </div>

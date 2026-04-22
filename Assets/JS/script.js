@@ -24,18 +24,24 @@ document.addEventListener("DOMContentLoaded", () => {
     const currentDoseSelect = document.getElementById("currentDose");
     const targetDoseSelect = document.getElementById("targetDose");
 
-    // อัปเดตให้เลือกทีละ 0.25 ได้
-    for (let i = 0.25; i <= 100; i += 0.25) {
-        let value = i.toFixed(2);
-        currentDoseSelect.add(new Option(value, value));
-        targetDoseSelect.add(new Option(value, value));
-    }
+    // 1. สร้าง Dropdown ครั้งแรก (ระบบจะเช็คว่า 1/4 เม็ดเปิดอยู่หรือไม่)
+    updateDropdownOptions();
 
     currentDoseSelect.value = "11.00";
     targetDoseSelect.value = "11.50";
 
     currentDoseSelect.addEventListener("change", calculateDisplay);
     targetDoseSelect.addEventListener("change", calculateDisplay);
+
+    // 2. ดักจับ Checkbox 1/4 เม็ดของหน้าหลัก
+    const quarterChk = document.getElementById('chk-quarter');
+    if (quarterChk) {
+        quarterChk.removeAttribute('onchange'); // ลบ onchange เดิมที่ฝังใน HTML ออก
+        quarterChk.addEventListener("change", () => {
+            updateDropdownOptions();
+            calculateDisplay(); // คำนวณใหม่เมื่อเปลี่ยนเงื่อนไข 1/4
+        });
+    }
 
     // Set Default Month for Calendar
     let today = new Date();
@@ -53,12 +59,55 @@ document.addEventListener("DOMContentLoaded", () => {
     calculateDisplay();
 });
 
-function stepDose(elementId, stepValue) {
+// ========================================================
+// 🔴 ฟังก์ชันใหม่: อัปเดตตัวเลขใน Dropdown ให้ซิงค์กับสวิตช์ 1/4
+// ========================================================
+function updateDropdownOptions() {
+    const currentDoseSelect = document.getElementById("currentDose");
+    const targetDoseSelect = document.getElementById("targetDose");
+    const allowQuarter = document.getElementById('chk-quarter') ? document.getElementById('chk-quarter').checked : false;
+
+    // กำหนด Step: ปิด 1/4 ให้ขยับทีละ 0.50 | เปิด 1/4 ให้ขยับทีละ 0.25
+    const step = allowQuarter ? 0.25 : 0.50;
+    const minDose = step;
+
+    let curVal = parseFloat(currentDoseSelect.value) || 11.00;
+    let tarVal = parseFloat(targetDoseSelect.value) || 11.50;
+
+    currentDoseSelect.innerHTML = '';
+    targetDoseSelect.innerHTML = '';
+
+    for (let i = minDose; i <= 100; i += step) {
+        let value = i.toFixed(2);
+        currentDoseSelect.add(new Option(value, value));
+        targetDoseSelect.add(new Option(value, value));
+    }
+
+    // ปัดเศษค่าเดิมให้ลงล็อคกับ step ปัจจุบัน
+    curVal = Math.round(curVal / step) * step;
+    tarVal = Math.round(tarVal / step) * step;
+
+    if (curVal < minDose) curVal = minDose;
+    if (tarVal < minDose) tarVal = minDose;
+
+    currentDoseSelect.value = curVal.toFixed(2);
+    targetDoseSelect.value = tarVal.toFixed(2);
+}
+
+function stepDose(elementId, stepValueFromHTML) {
     const selectEl = document.getElementById(elementId);
+    const allowQuarter = document.getElementById('chk-quarter') ? document.getElementById('chk-quarter').checked : false;
+
+    // ยกเลิกค่า 0.5 ที่ฝังมาจาก HTML แล้วใช้ step ตามเงื่อนไข 1/4 แทน
+    let step = allowQuarter ? 0.25 : 0.50;
+    let direction = stepValueFromHTML > 0 ? 1 : -1; // เช็คว่าเป็นปุ่มกด + หรือ -
+
     let currentValue = parseFloat(selectEl.value);
-    let newValue = currentValue + stepValue;
-    if (newValue < 0.25) newValue = 0.25;
+    let newValue = currentValue + (direction * step);
+
+    if (newValue < step) newValue = step;
     if (newValue > 100) newValue = 100;
+
     selectEl.value = newValue.toFixed(2);
     calculateDisplay();
 }
@@ -66,10 +115,15 @@ function stepDose(elementId, stepValue) {
 function applyPercent(percent) {
     const currentDose = parseFloat(document.getElementById("currentDose").value);
     let idealNewDose = currentDose + (currentDose * (percent / 100));
-    // ปัดเศษให้ลงตัวที่ 0.25
-    let snappedDose = Math.round(idealNewDose * 4) / 4;
-    if (snappedDose < 0.25) snappedDose = 0.25;
+
+    const allowQuarter = document.getElementById('chk-quarter') ? document.getElementById('chk-quarter').checked : false;
+    let step = allowQuarter ? 0.25 : 0.50;
+
+    // ปัดเศษให้ลงตัวที่ step ปัจจุบัน (0.50 หรือ 0.25)
+    let snappedDose = Math.round(idealNewDose / step) * step;
+    if (snappedDose < step) snappedDose = step;
     if (snappedDose > 100) snappedDose = 100;
+
     document.getElementById("targetDose").value = snappedDose.toFixed(2);
     calculateDisplay();
 }
@@ -297,12 +351,17 @@ function renderRegimenUI() {
     for(let i=0; i<displayCount; i++) {
         let reg = currentRegimens[i];
         let daysArr = Array(7).fill(null);
-        let activeDays = FREQ_TEMPLATES[reg.freq];
 
-        for (let j = 0; j < activeDays.length; j++) {
-            let dayIndex = activeDays[j];
-            if (j < reg.countA) daysArr[dayIndex] = { dose: reg.patternA, combo: reg.comboA };
-            else daysArr[dayIndex] = { dose: reg.patternB, combo: reg.comboB };
+        // เช็คว่าเป็นสูตรที่กำหนดเองหรือไม่
+        if (reg.isCustom) {
+            daysArr = reg.customDays;
+        } else {
+            let activeDays = FREQ_TEMPLATES[reg.freq];
+            for (let j = 0; j < activeDays.length; j++) {
+                let dayIndex = activeDays[j];
+                if (j < reg.countA) daysArr[dayIndex] = { dose: reg.patternA, combo: reg.comboA };
+                else daysArr[dayIndex] = { dose: reg.patternB, combo: reg.comboB };
+            }
         }
 
         let daysHTML = daysArr.map(d => {
@@ -314,9 +373,15 @@ function renderRegimenUI() {
         let rowClass = isSelected ? 'selected-regimen' : '';
         let checkedAttr = isSelected ? 'checked' : '';
 
+        // ถ้าเป็นสูตรกำหนดเอง ให้แสดงชื่อ Rank สวยๆ
+        let rankLabel = reg.isCustom ? `<span style="color:var(--primary-color); font-weight:700;">กำหนดเอง 🌟</span>` : `แบบที่ ${i + 1}`;
+
         html += `<tr class="${rowClass}" onclick="selectRegimen(${i})" style="cursor: pointer;">
                     <td class="regimen-rank">
-                        <div class="radio-container"><input type="radio" name="regSelect" ${checkedAttr}><span style="font-size: 14px; margin-top: 5px;">แบบที่ ${i + 1}</span></div>
+                        <div class="radio-container">
+                            <input type="radio" name="regSelect" ${checkedAttr}>
+                            <span style="font-size: 14px; margin-top: 5px; text-align: center;">${rankLabel}</span>
+                        </div>
                     </td>
                     ${daysHTML.join('')}
                 </tr>`;
@@ -349,18 +414,28 @@ function updateDaysFromDate() {
     calculateDispense();
 }
 
+// ========================================================
+// 2. ฟังก์ชันคำนวณซองยา (อัปเดตเลย์เอาต์จัดกลุ่ม ซ้าย-ขวา)
+// ========================================================
 function calculateDispense() {
     const resultContainer = document.getElementById('dispenseResult');
-    const dispenseMode = document.querySelector('input[name="dispenseType"]:checked').value;
+    const dispenseModeEl = document.querySelector('input[name="dispenseType"]:checked');
+    const dispenseMode = dispenseModeEl ? dispenseModeEl.value : 'combine';
     let days = parseInt(document.getElementById('dispenseDays').value) || 0;
 
     if (currentRegimens.length === 0 || days <= 0) { resultContainer.innerHTML = ''; return; }
 
     let reg = currentRegimens[selectedRegimenIndex];
     let daysArr = Array(7).fill(null);
-    let activeDays = FREQ_TEMPLATES[reg.freq];
-    for (let j = 0; j < activeDays.length; j++) {
-        daysArr[activeDays[j]] = (j < reg.countA) ? reg.comboA : reg.comboB;
+
+    // เช็คว่าเป็นสูตรที่กำหนดเองหรือไม่
+    if (reg.isCustom) {
+        daysArr = reg.customDays.map(d => d ? d.combo : null);
+    } else {
+        let activeDays = FREQ_TEMPLATES[reg.freq];
+        for (let j = 0; j < activeDays.length; j++) {
+            daysArr[activeDays[j]] = (j < reg.countA) ? reg.comboA : reg.comboB;
+        }
     }
 
     let todayIdx = (new Date().getDay() + 6) % 7;
@@ -383,15 +458,42 @@ function calculateDispense() {
         if (w > 0 || h > 0 || q > 0) {
             if (dispenseMode === 'combine') {
                 let exact = w + (h * 0.5) + (q * 0.25);
-                html += `<div class="pill-total-item"><div class="pill-total-label">ยาเม็ด ${size} mg</div><div><span class="dispense-highlight">จ่าย ${Math.ceil(exact)} เม็ด</span></div></div>`;
+                html += `
+                <div class="pill-total-item">
+                    <div class="pill-name">ยาเม็ด ${size} mg</div>
+                    <div class="pill-details" style="justify-content: flex-end;">
+                        <div class="dispense-highlight">จ่าย ${Math.ceil(exact)} เม็ด</div>
+                    </div>
+                </div>`;
             } else {
-                if (w > 0) html += `<div class="pill-total-item"><div class="pill-total-label">ยาเม็ด ${size} mg <span class="sub-text-half">ซองเต็มเม็ด</span></div><div class="dispense-highlight">จ่าย ${w} เม็ด</div></div>`;
-                if (h > 0) html += `<div class="pill-total-item"><div class="pill-total-label">ยาเม็ด ${size} mg <span class="sub-text-half">ซองครึ่งเม็ด (จัด ${h} ซีก)</span></div><div class="dispense-highlight">จ่าย ${Math.ceil(h/2)} เม็ด</div></div>`;
-                if (q > 0) html += `<div class="pill-total-item"><div class="pill-total-label">ยาเม็ด ${size} mg <span class="sub-text-half">ซอง 1/4 เม็ด (จัด ${q} เสี้ยว)</span></div><div class="dispense-highlight">จ่าย ${Math.ceil(q/4)} เม็ด</div></div>`;
+                if (w > 0) html += `
+                <div class="pill-total-item">
+                    <div class="pill-name">ยาเม็ด ${size} mg</div>
+                    <div class="pill-details">
+                        <span class="sub-text-half">ซองเต็มเม็ด</span>
+                        <div class="dispense-highlight">จ่าย ${w} เม็ด</div>
+                    </div>
+                </div>`;
+                if (h > 0) html += `
+                <div class="pill-total-item">
+                    <div class="pill-name">ยาเม็ด ${size} mg</div>
+                    <div class="pill-details">
+                        <span class="sub-text-half">ซองครึ่งเม็ด (จัด ${h} ซีก)</span>
+                        <div class="dispense-highlight">จ่าย ${Math.ceil(h/2)} เม็ด</div>
+                    </div>
+                </div>`;
+                if (q > 0) html += `
+                <div class="pill-total-item">
+                    <div class="pill-name">ยาเม็ด ${size} mg</div>
+                    <div class="pill-details">
+                        <span class="sub-text-half">ซอง 1/4 เม็ด (จัด ${q} เสี้ยว)</span>
+                        <div class="dispense-highlight">จ่าย ${Math.ceil(q/4)} เม็ด</div>
+                    </div>
+                </div>`;
             }
         }
     });
-    resultContainer.innerHTML = html || '<div style="color:#888;">ไม่มีการใช้ยา</div>';
+    resultContainer.innerHTML = html || '<div style="color:#888; text-align:center;">ไม่มีการใช้ยา</div>';
 }
 
 // ========================================================
@@ -458,9 +560,15 @@ function generateSingleMonthHTML(year, month) {
 
     let reg = currentRegimens[selectedRegimenIndex];
     let daysArr = Array(7).fill(null);
-    let activeDays = FREQ_TEMPLATES[reg.freq];
-    for (let j = 0; j < activeDays.length; j++) {
-        daysArr[activeDays[j]] = { dose: (j < reg.countA) ? reg.patternA : reg.patternB, combo: (j < reg.countA) ? reg.comboA : reg.comboB };
+
+    // เช็คว่าเป็นสูตรที่กำหนดเองหรือไม่
+    if (reg.isCustom) {
+        daysArr = reg.customDays;
+    } else {
+        let activeDays = FREQ_TEMPLATES[reg.freq];
+        for (let j = 0; j < activeDays.length; j++) {
+            daysArr[activeDays[j]] = { dose: (j < reg.countA) ? reg.patternA : reg.patternB, combo: (j < reg.countA) ? reg.comboA : reg.comboB };
+        }
     }
 
     let startDayMap = (dateObj.getDay() === 0) ? 6 : dateObj.getDay() - 1;
@@ -468,6 +576,11 @@ function generateSingleMonthHTML(year, month) {
 
     let targetDoseInput = document.getElementById('targetDose');
     let targetDoseVal = targetDoseInput ? targetDoseInput.value : (reg.totalDose ? reg.totalDose.toFixed(2) : '0.00');
+
+    // ถ้าเป็นสูตรตั้งเอง บังคับให้หัวกระดาษโชว์ค่ายาตามที่จัดเป๊ะๆ
+    if (reg.isCustom) {
+        targetDoseVal = reg.totalDose.toFixed(2);
+    }
 
     let html = `
     <div class="month-page-wrapper">
@@ -681,4 +794,189 @@ function closeChangelog() {
     document.body.style.overflow = 'auto';
 
     // (เอาส่วน localStorage ออกไปแล้ว ระบบเลยจะไม่จำว่าเคยกดรับทราบแล้ว)
+}
+
+// ========================================================
+// ระบบกำหนดสูตรยาเอง (เวอร์ชัน Sync กับปุ่มหลักข้างนอก)
+// ========================================================
+function openCustomModal() {
+    renderCustomModalContent();
+    document.getElementById('customRegimenModal').classList.add('show-modal');
+    document.body.style.overflow = 'hidden';
+}
+
+// ฟังก์ชันแยกสำหรับวาดเนื้อหาใน Modal (เพื่อให้เรียกซ้ำได้เวลาซิงค์ยา)
+function renderCustomModalContent() {
+    let allowed = getAvailablePills();
+    let allowQuarter = document.getElementById('chk-quarter').checked;
+
+    // 1. เตรียมตัวเลือกยาที่เป็นไปได้ (อ้างอิงตามปุ่มข้างนอก)
+    window.customValidDoses = [{dose: 0, combo: []}];
+    if (allowed.length > 0) {
+        for (let i = 0.25; i <= 25; i += 0.25) {
+            let combo = findPillCombos(i, allowed, allowQuarter);
+            if (combo) window.customValidDoses.push({dose: i, combo: combo});
+        }
+    }
+
+    // 2. สร้าง UI สำหรับเลือกเม็ดยาใน Modal (ซิงค์กับข้างนอก)
+    let pillSelectorsHtml = `
+        <div class="modal-pill-selectors">
+            ${[2, 3, 5].map(size => {
+                let isActive = document.getElementById(`chk-${size}`).checked ? 'active' : '';
+                let isChecked = document.getElementById(`chk-${size}`).checked ? 'checked' : '';
+                return `
+                <label class="pill-checkbox-label ${isActive}" id="modal-lbl-${size}">
+                    <input type="checkbox" onchange="syncPillSelection(${size})" ${isChecked}>
+                    <div class="pill-icon" style="background-color: ${PILL_DEFS[size].color};"></div>
+                    <span>เม็ด ${size} mg</span>
+                </label>`;
+            }).join('')}
+            <div class="modal-quarter-wrapper">
+                <label class="quarter-toggle">
+                    <input type="checkbox" id="modal-chk-quarter" onchange="syncQuarterSelection()" ${allowQuarter ? 'checked' : ''}>
+                    <div class="quarter-btn-content">
+                        <span class="quarter-icon">✂️</span>
+                        <span>อนุญาตหัก 1/4 เม็ด</span>
+                    </div>
+                </label>
+            </div>
+        </div>
+    `;
+
+    // 3. สร้างแถวเลือกยา 7 วัน
+    const days = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
+    let optionsHtml = window.customValidDoses.map((item, idx) =>
+        `<option value="${idx}">${item.dose === 0 ? 'งด' : item.dose.toFixed(2) + ' mg'}</option>`
+    ).join('');
+
+    // ดึงค่าเดิมมา Prefill (ถ้ามี)
+    let currentReg = currentRegimens[selectedRegimenIndex];
+    let prefillValues = Array(7).fill(0);
+    if (currentReg && currentReg.isCustom) {
+        prefillValues = currentReg.customDays.map(dayData => {
+            if (!dayData) return 0;
+            let matchIdx = window.customValidDoses.findIndex(v => Math.abs(v.dose - dayData.dose) < 0.01);
+            return matchIdx !== -1 ? matchIdx : 0;
+        });
+    }
+
+    let daysHtml = '';
+    for(let i=0; i<7; i++) {
+        daysHtml += `
+        <div class="custom-day-row">
+            <span class="custom-day-label">${days[i]}</span>
+            <div class="select-stepper-group">
+                <button class="btn-modal-step" onclick="stepCustomDay(${i}, -1)">-</button>
+                <select id="custom-day-${i}" onchange="updateCustomTotal()">${optionsHtml}</select>
+                <button class="btn-modal-step" onclick="stepCustomDay(${i}, 1)">+</button>
+            </div>
+        </div>`;
+    }
+
+    // รวมร่าง HTML
+    document.getElementById('custom-days-container').innerHTML = pillSelectorsHtml + daysHtml;
+
+    // ใส่ค่าเดิมคืนเข้าไป
+    for(let i=0; i<7; i++) {
+        document.getElementById(`custom-day-${i}`).value = prefillValues[i];
+    }
+    updateCustomTotal();
+}
+
+// ฟังก์ชันซิงค์การเลือกเม็ดยา 2, 3, 5 mg
+function syncPillSelection(size) {
+    // 1. เปลี่ยนสถานะที่ปุ่มหลักด้านนอก
+    let mainChk = document.getElementById(`chk-${size}`);
+    mainChk.checked = !mainChk.checked;
+
+    // 2. เรียกฟังก์ชันเดิมเพื่อให้ UI ข้างนอกเปลี่ยนตาม (สีปุ่ม)
+    updatePillState(size);
+
+    // 3. วาด Modal ใหม่เพื่อให้ตัวเลือกใน Dropdown อัปเดตตามเม็ดยาที่เหลืออยู่
+    renderCustomModalContent();
+}
+
+// ฟังก์ชันซิงค์การหัก 1/4 เม็ด
+function syncQuarterSelection() {
+    let mainQuarter = document.getElementById('chk-quarter');
+    mainQuarter.checked = document.getElementById('modal-chk-quarter').checked;
+
+    // 🔴 เพิ่มบรรทัดนี้ เพื่อให้ปุ่ม Dropdown หลักอัปเดตตัวเลือกทันทีเวลาแก้ใน Modal
+    updateDropdownOptions();
+
+    renderCustomModalContent();
+}
+
+function stepCustomDay(dayIndex, direction) {
+    const selectEl = document.getElementById(`custom-day-${dayIndex}`);
+    if (!selectEl) return;
+    let currentIndex = parseInt(selectEl.value);
+    let newIndex = currentIndex + direction;
+    if (newIndex >= 0 && newIndex < window.customValidDoses.length) {
+        selectEl.value = newIndex;
+        updateCustomTotal();
+    }
+}
+
+function updateCustomTotal() {
+    let total = 0;
+    for(let i=0; i<7; i++) {
+        let el = document.getElementById(`custom-day-${i}`);
+        if(el) total += window.customValidDoses[el.value].dose;
+    }
+    document.getElementById('custom-total-display').innerText = `รวม: ${total.toFixed(2)} mg/week`;
+}
+
+function closeCustomModal() {
+    document.getElementById('customRegimenModal').classList.remove('show-modal');
+    document.body.style.overflow = 'auto';
+}
+
+function applyCustomRegimen() {
+    let customDays = [];
+    let total = 0;
+    for(let i=0; i<7; i++) {
+        let idx = document.getElementById(`custom-day-${i}`).value;
+        let data = window.customValidDoses[idx];
+        if (data.dose === 0) customDays.push(null);
+        else customDays.push({dose: data.dose, combo: data.combo});
+        total += data.dose;
+    }
+    if (total === 0) { alert("กรุณาระบุขนาดยาอย่างน้อย 1 วันครับ"); return; }
+
+    document.getElementById("targetDose").value = total.toFixed(2);
+    updateRegimens(total); // สั่ง AI คำนวณอันอื่นเผื่อไว้ด้วย
+
+    let newCustom = { isCustom: true, customDays: customDays, totalDose: total, score: -999999 };
+    currentRegimens.unshift(newCustom);
+    selectedRegimenIndex = 0;
+
+    // อัปเดต UI หน้าหลัก
+    const currentDose = parseFloat(document.getElementById("currentDose").value);
+    const actualPercentEl = document.getElementById("actualPercent");
+    const newDoseDisplayEl = document.getElementById("newDoseDisplay");
+    const percentChange = ((total - currentDose) / currentDose) * 100;
+
+    if (percentChange > 0) {
+        actualPercentEl.innerHTML = `▲ เพิ่มขึ้น ${percentChange.toFixed(2)}%`;
+        actualPercentEl.style.color = "var(--green-text)";
+        newDoseDisplayEl.innerHTML = `▲ เพิ่มขึ้น ${total.toFixed(2)} mg/week`;
+        newDoseDisplayEl.style.color = "var(--green-text)";
+    } else if (percentChange < 0) {
+        actualPercentEl.innerHTML = `▼ ลดลง ${Math.abs(percentChange).toFixed(2)}%`;
+        actualPercentEl.style.color = "var(--red-text)";
+        newDoseDisplayEl.innerHTML = `▼ ลดลง ${total.toFixed(2)} mg/week`;
+        newDoseDisplayEl.style.color = "var(--red-text)";
+    } else {
+        actualPercentEl.innerHTML = `➖ ไม่เปลี่ยนแปลง`;
+        actualPercentEl.style.color = "#6c757d";
+        newDoseDisplayEl.innerHTML = `➖ ${total.toFixed(2)} mg/week`;
+        newDoseDisplayEl.style.color = "#6c757d";
+    }
+
+    renderRegimenUI();
+    calculateDispense();
+    generateCalendar();
+    closeCustomModal();
 }
