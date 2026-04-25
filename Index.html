@@ -102,6 +102,11 @@
 
             <div class="pill-selection-text">เลือกขนาดยาที่มีในโรงพยาบาล</div>
             <div class="pill-selectors">
+                <label class="pill-checkbox-label active" id="lbl-pill-1">
+                    <input type="checkbox" id="chk-1" checked onchange="updatePillState(1)">
+                    <div class="pill-icon" style="background-color: #ffffff; border-color: #cbd5e1;"></div>
+                    <span>เม็ด 1 mg</span>
+                </label>
                 <label class="pill-checkbox-label active" id="lbl-pill-2">
                     <input type="checkbox" id="chk-2" checked onchange="updatePillState(2)">
                     <div class="pill-icon" style="background-color: #f28b30;"></div>
@@ -147,9 +152,10 @@
                         <table class="regimen-table"></table>
                     </div>
                     <div style="text-align: center; margin-top: 20px;">
-                        <button class="btn-pct" style="background-color: var(--primary-color); color: white; padding: 12px 24px; font-size: 16px; width: 100%; max-width: 300px;" onclick="openCustomModal()">
-                            🛠️ กำหนดสูตรยาเอง (Manual)
+                        <button class="btn-custom-regimen" onclick="openCustomModal()">
+                            <span class="icon-anim">🛠️</span> กำหนดสูตรยาเอง (Manual)
                         </button>
+                        ㅤ
                     </div>
             </div>
         </div>
@@ -183,7 +189,12 @@
                 </div>
         </div>
         <div class="calendar-wrapper no-print">
-            <h3 class="regimen-title">🗓️ ปฏิทินการกินยา (สำหรับผู้ป่วย)</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px;">
+                <h3 class="regimen-title" style="border: none; margin: 0; padding: 0;">🗓️ ปฏิทินการกินยา</h3>
+                <button onclick="openCalendarSettingsModal()" style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px 12px; font-family: 'Sarabun', sans-serif; font-size: 13px; color: #475569; cursor: pointer; font-weight: 500; transition: all 0.2s;">
+                    ⚙️ เพิ่มข้อมูลผู้ป่วย/ปรับเป้าหมาย INR
+                </button>
+            </div>
 
             <div class="dispense-inputs" style="align-items: flex-end; flex-wrap: wrap; gap: 15px;">
                 <div class="input-group" style="flex: 1; min-width: 120px;">
@@ -231,6 +242,16 @@
                 <button class="close-modal" onclick="closeChangelog()">&times;</button>
             </div>
             <div class="modal-body">
+
+                 <div class="version-header">
+                    <span class="version-title">🌼 เวอร์ชัน 1.3.0</span> <span class="version-date">(25 เมษายน 2569)</span>
+                </div>
+                <div class="version-box box-dashed">
+                    <ul>
+                        <li><strong>เพิ่มยาเม็ด 1 mg (สีขาว) </strong> เพิ่มขนาดยา 1 mg พร้อมทำขอบสีเทาเข้มเพื่อให้เห็นชัดเจนบนพื้นขาว</li>
+                        <li>เ<strong>เพิ่มระบบตั้งค่าข้อมูลผู้ป่วย</strong> เพิ่มปุ่มเปิดหน้าต่าง Popup สำหรับกรอก ชื่อ-นามสกุล, HN, และเป้าหมาย INR</li>
+                    </ul>
+                </div>
 
                 <div class="version-header">
                     <span class="version-title">🍀 เวอร์ชัน 1.2.0</span> <span class="version-date">(22 เมษายน 2569)</span>
@@ -283,6 +304,50 @@
             </div>
         </div>
     </div>
+
+    <div id="calendarSettingsModal" class="modal-overlay">
+        <div class="changelog-modal" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>⚙️ ข้อมูลผู้ป่วยบนปฏิทิน</h2>
+                <button class="close-modal" onclick="closeCalendarSettingsModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 24px; overflow-y: visible;">
+                <p style="margin-top: 0; color: #64748b; font-size: 14px; margin-bottom: 20px;">ข้อมูลนี้จะถูกนำไปแสดงบนหัวกระดาษปฏิทิน (เว้นว่างไว้ได้หากไม่ต้องการพิมพ์)</p>
+
+                <div class="dispense-inputs" style="flex-direction: column; gap: 16px; margin-bottom: 0;">
+                    <div class="input-group" style="width: 100%;">
+                        <label for="patientName" style="font-size: 14px; color: #334155; font-weight: 600; margin-bottom: 6px;">ชื่อ-นามสกุล ผู้ป่วย</label>
+                        <input type="text" id="patientName" placeholder="เช่น นายใจดี มีสุข" oninput="generateCalendar()" style="width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 12px; font-size: 15px;">
+                    </div>
+
+                    <div class="input-group" style="width: 100%;">
+                        <label for="patientHN" style="font-size: 14px; color: #334155; font-weight: 600; margin-bottom: 6px;">HN</label>
+                        <input type="text" id="patientHN" placeholder="เช่น 000001" oninput="generateCalendar()" style="width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 12px; font-size: 15px;">
+                    </div>
+
+                    <div class="input-group" style="width: 100%;">
+                        <label style="font-size: 14px; color: #334155; font-weight: 600; margin-bottom: 6px;">ระดับ INR เป้าหมาย</label>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <input type="number" id="targetINRMin" value="2.0" step="0.1" min="0" placeholder="ต่ำสุด"
+                                   oninput="generateCalendar()"
+                                   onblur="if(this.value !== '') this.value = parseFloat(this.value).toFixed(1)"
+                                   class="inr-input">
+                            <span style="color: #94a3b8; font-weight: bold;">-</span>
+                            <input type="number" id="targetINRMax" value="3.0" step="0.1" min="0" placeholder="สูงสุด"
+                                   oninput="generateCalendar()"
+                                   onblur="if(this.value !== '') this.value = parseFloat(this.value).toFixed(1)"
+                                   class="inr-input">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: center; padding: 16px 24px; gap: 12px;">
+                <button class="btn-pct" style="background-color: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; flex: 1; max-width: 140px;" onclick="clearCalendarSettings()">🗑️ ล้างข้อมูล</button>
+                <button class="btn-acknowledge" style="flex: 1; max-width: 160px; margin: 0;" onclick="closeCalendarSettingsModal()">✅ บันทึกและปิด</button>
+            </div>
+        </div>
+    </div>
+
     <script src="Assets/JS/script.js"></script>
 </body>
 </html>

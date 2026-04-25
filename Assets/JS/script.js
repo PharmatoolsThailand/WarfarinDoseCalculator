@@ -1,8 +1,9 @@
 // --- สีเม็ดยาอ้างอิง ---
 const PILL_DEFS = {
-    2: { color: '#f28b30' },
-    3: { color: '#0b5394' },
-    5: { color: '#e84c95' }
+    1: { color: '#ffffff', border: '#94a3b8' },
+    2: { color: '#f28b30', border: '#f28b30' },
+    3: { color: '#0b5394', border: '#0b5394' },
+    5: { color: '#e84c95', border: '#e84c95' }
 };
 
 const FREQ_TEMPLATES = {
@@ -166,9 +167,10 @@ function updatePillState(size) {
 
 function getAvailablePills() {
     let available = [];
-    if (document.getElementById('chk-2').checked) available.push(2);
-    if (document.getElementById('chk-3').checked) available.push(3);
-    if (document.getElementById('chk-5').checked) available.push(5);
+    if (document.getElementById('chk-1') && document.getElementById('chk-1').checked) available.push(1);
+    if (document.getElementById('chk-2') && document.getElementById('chk-2').checked) available.push(2);
+    if (document.getElementById('chk-3') && document.getElementById('chk-3').checked) available.push(3);
+    if (document.getElementById('chk-5') && document.getElementById('chk-5').checked) available.push(5);
     return available;
 }
 
@@ -192,10 +194,14 @@ function findPillCombos(targetDose, allowedSizes, allowQuarter) {
     let sortedSizes = [...allowedSizes].sort((a, b) => b - a);
 
     for (let size of sortedSizes) {
-        branches.push({size: size, frac: 1, val: size, hex: PILL_DEFS[size].color, penalty: 10}); // เต็มเม็ด (คะแนน 10)
-        branches.push({size: size, frac: 0.5, val: size/2, hex: PILL_DEFS[size].color, penalty: 15}); // ครึ่งเม็ด (คะแนน 10+5)
+        let pDef = PILL_DEFS[size]; // ดึงนิยามเต็มๆ มา
+        // เต็มเม็ด
+        branches.push({size: size, frac: 1, val: size, hex: pDef.color, border: pDef.border, penalty: 10});
+        // ครึ่งเม็ด
+        branches.push({size: size, frac: 0.5, val: size/2, hex: pDef.color, border: pDef.border, penalty: 15});
+        // เศษ 1/4 เม็ด
         if (allowQuarter) {
-            branches.push({size: size, frac: 0.25, val: size/4, hex: PILL_DEFS[size].color, penalty: 30}); // 1/4 เม็ด (คะแนน 10+20 ให้เลี่ยงมากที่สุด)
+            branches.push({size: size, frac: 0.25, val: size/4, hex: pDef.color, border: pDef.border, penalty: 30});
         }
     }
 
@@ -317,14 +323,14 @@ function evaluateScore(A, B, comboA, comboB, x, y, freq) {
 }
 
 function generateCellHTML(combo, dose) {
-    let html = '<div style="display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:4px;">';
+    let html = '<div style="display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:4px; min-height: 24px;">';
     for (let p of combo) {
         if (p.frac === 1) {
-            html += `<div class="pill-graphic" style="background-color: ${p.hex}; border: 2px solid ${p.hex}; box-sizing: border-box;"></div>`;
+            html += `<div class="pill-graphic" style="--sz: 20px; background-color: ${p.hex}; border: 2px solid ${p.border};"></div>`;
         } else if (p.frac === 0.5) {
-            html += `<div class="pill-graphic" style="background: linear-gradient(90deg, #fff 50%, ${p.hex} 50%); border: 2px solid ${p.hex}; box-sizing: border-box;"></div>`;
+            html += `<div class="pill-graphic half" style="--sz: 20px; background-color: ${p.hex}; border: 2px solid ${p.border}; border-left-color: ${p.border};"></div>`;
         } else if (p.frac === 0.25) {
-            html += `<div class="pill-graphic" style="background: conic-gradient(${p.hex} 0deg 90deg, transparent 90deg 360deg); border: 2px solid ${p.hex}; box-sizing: border-box;"></div>`;
+            html += `<div class="pill-graphic quarter" style="--sz: 20px; background-color: ${p.hex}; border: 2px solid ${p.border}; border-left-color: ${p.border}; border-top-color: ${p.border};"></div>`;
         }
     }
     html += `</div><div class="dose-text">${dose.toFixed(2).replace(/\.00$/, '')} mg</div>`;
@@ -439,7 +445,7 @@ function calculateDispense() {
     }
 
     let todayIdx = (new Date().getDay() + 6) % 7;
-    let totals = { 2: { w:0, h:0, q:0 }, 3: { w:0, h:0, q:0 }, 5: { w:0, h:0, q:0 } };
+    let totals = { 1: { w:0, h:0, q:0 }, 2: { w:0, h:0, q:0 }, 3: { w:0, h:0, q:0 }, 5: { w:0, h:0, q:0 } };
 
     for (let i = 0; i < days; i++) {
         let combo = daysArr[(todayIdx + i) % 7];
@@ -453,7 +459,7 @@ function calculateDispense() {
     }
 
     let html = '';
-    [2, 3, 5].forEach(size => {
+    [1, 2, 3, 5].forEach(size => {
         let {w, h, q} = totals[size];
         if (w > 0 || h > 0 || q > 0) {
             if (dispenseMode === 'combine') {
@@ -552,41 +558,71 @@ function generateCalendar() {
 }
 
 // ========================================================
-// 2. ฟังก์ชันช่วยสร้าง HTML สำหรับปฏิทิน 1 เดือน
+// ฟังก์ชันสร้างปฏิทิน 1 เดือน (ฉบับสมบูรณ์)
 // ========================================================
 function generateSingleMonthHTML(year, month) {
     const monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
     const dateObj = new Date(year, month - 1, 1);
 
+    // ป้องกัน Error กรณีที่ยังไม่ได้คำนวณยา
+    if (currentRegimens.length === 0) return '';
+
     let reg = currentRegimens[selectedRegimenIndex];
     let daysArr = Array(7).fill(null);
 
-    // เช็คว่าเป็นสูตรที่กำหนดเองหรือไม่
     if (reg.isCustom) {
         daysArr = reg.customDays;
     } else {
         let activeDays = FREQ_TEMPLATES[reg.freq];
         for (let j = 0; j < activeDays.length; j++) {
-            daysArr[activeDays[j]] = { dose: (j < reg.countA) ? reg.patternA : reg.patternB, combo: (j < reg.countA) ? reg.comboA : reg.comboB };
+            let dayIndex = activeDays[j];
+            if (j < reg.countA) daysArr[dayIndex] = { dose: reg.patternA, combo: reg.comboA };
+            else daysArr[dayIndex] = { dose: reg.patternB, combo: reg.comboB };
         }
     }
 
     let startDayMap = (dateObj.getDay() === 0) ? 6 : dateObj.getDay() - 1;
     let daysInMonth = new Date(year, month, 0).getDate();
 
+    // 1. ดึงข้อมูลผู้ป่วยและ INR
+    let pName = document.getElementById('patientName') ? document.getElementById('patientName').value.trim() : '';
+    let pHN = document.getElementById('patientHN') ? document.getElementById('patientHN').value.trim() : '';
+    let inrMin = document.getElementById('targetINRMin') ? document.getElementById('targetINRMin').value.trim() : '';
+    let inrMax = document.getElementById('targetINRMax') ? document.getElementById('targetINRMax').value.trim() : '';
+
+    let targetINR = '';
+    if (inrMin !== '' && inrMax !== '') {
+        targetINR = `${inrMin} - ${inrMax}`;
+    } else if (inrMin !== '') {
+        targetINR = `>= ${inrMin}`;
+    } else if (inrMax !== '') {
+        targetINR = `<= ${inrMax}`;
+    }
+
+    // 2. ดึงขนาดยาเป้าหมาย
     let targetDoseInput = document.getElementById('targetDose');
     let targetDoseVal = targetDoseInput ? targetDoseInput.value : (reg.totalDose ? reg.totalDose.toFixed(2) : '0.00');
-
-    // ถ้าเป็นสูตรตั้งเอง บังคับให้หัวกระดาษโชว์ค่ายาตามที่จัดเป๊ะๆ
     if (reg.isCustom) {
         targetDoseVal = reg.totalDose.toFixed(2);
     }
 
+    // 3. สร้างแถบข้อมูลผู้ป่วยบนหัวกระดาษ (จะโชว์ก็ต่อเมื่อมีการกรอกข้อมูล)
+    let patientInfoHTML = '';
+    if (pName || pHN || targetINR) {
+        patientInfoHTML = `<div class="cal-patient-info">`;
+        if (pName) patientInfoHTML += `<span>ผู้ป่วย: <strong>${pName}</strong></span>`;
+        if (pHN) patientInfoHTML += `<span>HN: <strong>${pHN}</strong></span>`;
+        if (targetINR) patientInfoHTML += `<span>INR เป้าหมาย: <strong>${targetINR}</strong></span>`;
+        patientInfoHTML += `</div>`;
+    }
+
+    // 4. เริ่มวาดตารางปฏิทิน
     let html = `
     <div class="month-page-wrapper">
         <div class="cal-header">
             <h2>ปฏิทินการรับประทานยา Warfarin</h2>
-            <p>ประจำเดือน: <strong>${monthNames[month - 1]} ${year + 543}</strong> | ขนาดยาเป้าหมาย: <strong>${targetDoseVal} mg/week</strong></p>
+            <p style="margin-bottom:10px;">ประจำเดือน: <strong>${monthNames[month - 1]} ${year + 543}</strong> | ขนาดยาเป้าหมาย: <strong>${targetDoseVal} mg/week</strong></p>
+            ${patientInfoHTML}
         </div>
         <table class="cal-grid">
             <thead>
@@ -597,36 +633,46 @@ function generateSingleMonthHTML(year, month) {
             </thead>
             <tbody><tr>`;
 
+    // ใส่ช่องว่างสำหรับวันก่อนหน้าของเดือนนั้นๆ
     for (let i = 0; i < startDayMap; i++) html += `<td class="cal-cell empty"></td>`;
 
+    // วาดวันที่และเม็ดยา
     for (let day = 1; day <= daysInMonth; day++) {
         let dayOfWeek = (startDayMap + day - 1) % 7;
         let regimenDay = daysArr[dayOfWeek];
         let cellContent = `<div class="cal-date">${day}</div><div class="cal-pill-area">`;
 
         if (regimenDay) {
-            let pillHtml = '<div style="display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:4px; margin-bottom: 4px;">';
+            let pillHtml = '<div style="display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:4px; margin-bottom: 4px; min-height: 28px;">';
             for (let p of regimenDay.combo) {
-                if (p.frac === 1) pillHtml += `<div class="pill-graphic" style="background-color: ${p.hex}; border: 2px solid ${p.hex}; box-sizing: border-box; width: 24px; height: 24px; border-radius: 50%;"></div>`;
-                else if (p.frac === 0.5) pillHtml += `<div class="pill-graphic" style="background: linear-gradient(90deg, #fff 50%, ${p.hex} 50%); border: 2px solid ${p.hex}; box-sizing: border-box; width: 24px; height: 24px; border-radius: 50%;"></div>`;
-                else if (p.frac === 0.25) pillHtml += `<div class="pill-graphic" style="background: conic-gradient(${p.hex} 0deg 90deg, transparent 90deg 360deg); border: 2px solid ${p.hex}; box-sizing: border-box; width: 24px; height: 24px; border-radius: 50%;"></div>`;
+                if (p.frac === 1) {
+                    pillHtml += `<div class="pill-graphic" style="--sz: 24px; background-color: ${p.hex}; border: 2px solid ${p.border};"></div>`;
+                } else if (p.frac === 0.5) {
+                    pillHtml += `<div class="pill-graphic half" style="--sz: 24px; background-color: ${p.hex}; border: 2px solid ${p.border}; border-left-color: ${p.border};"></div>`;
+                } else if (p.frac === 0.25) {
+                    pillHtml += `<div class="pill-graphic quarter" style="--sz: 24px; background-color: ${p.hex}; border: 2px solid ${p.border}; border-left-color: ${p.border}; border-top-color: ${p.border};"></div>`;
+                }
             }
             pillHtml += `</div><div class="dose-text" style="font-size:12px; color:#1e293b; font-weight:bold;">${regimenDay.dose.toFixed(2).replace(/\.00$/, '')} mg</div>`;
             cellContent += pillHtml;
         } else {
-            cellContent += `<div class="pill-empty" style="margin-bottom: 4px; height: 24px;"></div><div class="dose-empty-text" style="font-size:12px;">งดยา</div>`;
+            cellContent += `<div class="pill-empty" style="margin-bottom: 4px; height: 28px;"></div><div class="dose-empty-text" style="font-size:12px;">งดยา</div>`;
         }
         cellContent += `</div>`;
         html += `<td class="cal-cell">${cellContent}</td>`;
+
+        // ขึ้นบรรทัดใหม่เมื่อถึงวันอาทิตย์
         if (dayOfWeek === 6 && day < daysInMonth) html += `</tr><tr>`;
     }
 
+    // ใส่ช่องว่างปิดท้ายเดือน
     let lastDayIndex = (startDayMap + daysInMonth - 1) % 7;
     for (let i = lastDayIndex + 1; i <= 6; i++) html += `<td class="cal-cell empty"></td>`;
 
     html += `</tr></tbody></table>`;
     html += `<div class="note-area" style="margin-top:15px; font-size:14px; border-top:1px dashed #ccc; padding-top:10px;"><strong>หมายเหตุแพทย์/เภสัชกร:</strong> ....................................................................................................</div>`;
     html += `</div>`;
+
     return html;
 }
 
@@ -721,6 +767,14 @@ function printCalendar() {
                 .pill-graphic { display: inline-block; width: ${pillSize}; height: ${pillSize}; border-radius: 50%; border: 2px solid rgba(0,0,0,0.1); }
                 .dose-text { font-size: ${fontSizeDose}; font-weight: bold; color: #1e293b; margin-top: 5px; text-align: center;}
                 .note-area { margin-top: 15px; font-size: ${fontSizeNote}; border-top: 1px dashed #ccc; padding-top: 10px; color: #475569; }
+
+                .pill-graphic { --sz: ${pillSize} !important; }
+                .pill-graphic.half { width: calc(var(--sz) / 2) !important; border-radius: 0 100px 100px 0 !important; border-left-style: dashed !important; border-left-width: 1.5px !important; }
+                .pill-graphic.quarter { width: calc(var(--sz) / 2) !important; height: calc(var(--sz) / 2) !important; border-radius: 0 0 100px 0 !important; border-left-style: dashed !important; border-top-style: dashed !important; align-self: flex-end; }
+
+                /* 🔴 CSS สำหรับแสดงข้อมูลผู้ป่วยและเป้าหมาย INR ในหน้า Print */
+                .cal-patient-info { display: flex; justify-content: center; gap: 30px; margin-top: 5px; font-size: ${isA4 ? '20px' : '14px'}; color: #334155;}
+                .cal-patient-info strong { color: #0d7b6c; font-weight: 600;}
             </style>
         </head>
         <body>
@@ -805,12 +859,11 @@ function openCustomModal() {
     document.body.style.overflow = 'hidden';
 }
 
-// ฟังก์ชันแยกสำหรับวาดเนื้อหาใน Modal (เพื่อให้เรียกซ้ำได้เวลาซิงค์ยา)
+// ฟังก์ชันแยกสำหรับวาดเนื้อหาใน Modal (อัปเดตรองรับ Grid 2 คอลัมน์)
 function renderCustomModalContent() {
     let allowed = getAvailablePills();
     let allowQuarter = document.getElementById('chk-quarter').checked;
 
-    // 1. เตรียมตัวเลือกยาที่เป็นไปได้ (อ้างอิงตามปุ่มข้างนอก)
     window.customValidDoses = [{dose: 0, combo: []}];
     if (allowed.length > 0) {
         for (let i = 0.25; i <= 25; i += 0.25) {
@@ -819,16 +872,17 @@ function renderCustomModalContent() {
         }
     }
 
-    // 2. สร้าง UI สำหรับเลือกเม็ดยาใน Modal (ซิงค์กับข้างนอก)
     let pillSelectorsHtml = `
         <div class="modal-pill-selectors">
-            ${[2, 3, 5].map(size => {
-                let isActive = document.getElementById(`chk-${size}`).checked ? 'active' : '';
-                let isChecked = document.getElementById(`chk-${size}`).checked ? 'checked' : '';
+            ${[1, 2, 3, 5].map(size => {
+                let mainChk = document.getElementById(`chk-${size}`);
+                let isActive = mainChk && mainChk.checked ? 'active' : '';
+                let isChecked = mainChk && mainChk.checked ? 'checked' : '';
+                let def = PILL_DEFS[size];
                 return `
                 <label class="pill-checkbox-label ${isActive}" id="modal-lbl-${size}">
                     <input type="checkbox" onchange="syncPillSelection(${size})" ${isChecked}>
-                    <div class="pill-icon" style="background-color: ${PILL_DEFS[size].color};"></div>
+                    <div class="pill-icon" style="background-color: ${def.color}; border: 2px solid ${def.border}; box-sizing: border-box;"></div>
                     <span>เม็ด ${size} mg</span>
                 </label>`;
             }).join('')}
@@ -844,13 +898,11 @@ function renderCustomModalContent() {
         </div>
     `;
 
-    // 3. สร้างแถวเลือกยา 7 วัน
     const days = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
     let optionsHtml = window.customValidDoses.map((item, idx) =>
         `<option value="${idx}">${item.dose === 0 ? 'งด' : item.dose.toFixed(2) + ' mg'}</option>`
     ).join('');
 
-    // ดึงค่าเดิมมา Prefill (ถ้ามี)
     let currentReg = currentRegimens[selectedRegimenIndex];
     let prefillValues = Array(7).fill(0);
     if (currentReg && currentReg.isCustom) {
@@ -861,7 +913,8 @@ function renderCustomModalContent() {
         });
     }
 
-    let daysHtml = '';
+    // 🔴 จัดกลุ่มแถววันทั้ง 7 ด้วย div คลาส custom-days-grid
+    let daysHtml = '<div class="custom-days-grid">';
     for(let i=0; i<7; i++) {
         daysHtml += `
         <div class="custom-day-row">
@@ -873,11 +926,10 @@ function renderCustomModalContent() {
             </div>
         </div>`;
     }
+    daysHtml += '</div>';
 
-    // รวมร่าง HTML
     document.getElementById('custom-days-container').innerHTML = pillSelectorsHtml + daysHtml;
 
-    // ใส่ค่าเดิมคืนเข้าไป
     for(let i=0; i<7; i++) {
         document.getElementById(`custom-day-${i}`).value = prefillValues[i];
     }
@@ -979,4 +1031,35 @@ function applyCustomRegimen() {
     calculateDispense();
     generateCalendar();
     closeCustomModal();
+}
+
+// ========================================================
+// ระบบตั้งค่าข้อมูลปฏิทิน (Calendar Settings Modal)
+// ========================================================
+function openCalendarSettingsModal() {
+    document.getElementById('calendarSettingsModal').classList.add('show-modal');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeCalendarSettingsModal() {
+    document.getElementById('calendarSettingsModal').classList.remove('show-modal');
+    document.body.style.overflow = 'auto';
+
+    // อัปเดตปฏิทินอีกครั้งเผื่อมีข้อมูลเปลี่ยน
+    generateCalendar();
+}
+
+// ========================================================
+// ฟังก์ชันล้างข้อมูลผู้ป่วย (Calendar Settings)
+// ========================================================
+function clearCalendarSettings() {
+    if (confirm("คุณต้องการล้างข้อมูลผู้ป่วยและค่า INR ทั้งหมดใช่หรือไม่?")) {
+        document.getElementById('patientName').value = '';
+        document.getElementById('patientHN').value = '';
+        document.getElementById('targetINRMin').value = '2.0';
+        document.getElementById('targetINRMax').value = '3.0';
+
+        // อัปเดตปฏิทินทันทีหลังจากล้างค่า
+        generateCalendar();
+    }
 }
