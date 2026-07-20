@@ -349,5 +349,27 @@
     </div>
 
     <script src="Assets/JS/script.js"></script>
+
+    <div id="visitorBadge" hidden title="จำนวนผู้เข้าชมทั้งหมด"
+         style="position:fixed;bottom:12px;left:12px;z-index:500;display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:999px;background:rgba(13,123,108,.92);color:#fff;font:600 12px/1 sans-serif;box-shadow:0 4px 12px -4px rgba(15,23,42,.35);pointer-events:none;user-select:none;">
+      👁 <span id="visitorCount">–</span>
+    </div>
+    <script>
+    (function () {
+      var CODE = 'warfarin';
+      if (location.protocol === 'file:') return;
+      var s = document.createElement('script');
+      s.async = true; s.src = 'https://gc.zgo.at/count.js';
+      s.setAttribute('data-goatcounter', 'https://' + CODE + '.goatcounter.com/count');
+      document.head.appendChild(s);
+      fetch('https://' + CODE + '.goatcounter.com/counter/TOTAL.json')
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          var v = d && (d.count_unique || d.count); if (!v) return;
+          var b = document.getElementById('visitorBadge'), n = document.getElementById('visitorCount');
+          if (b && n) { n.textContent = v; b.hidden = false; }
+        }).catch(function () {});
+    })();
+    </script>
 </body>
 </html>
