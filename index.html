@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>คำนวณขนาดยา Warfarin | Warfarin Dose Calculator</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+
+    <link rel="icon" type="image/png" sizes="192x192" href="Assets/Images/logo-endo.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="Assets/Images/logo-endo.png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#0f766e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Warfarin">
+    <meta name="mobile-web-app-capable" content="yes">
+</head>
+<body>
+
+<div class="app-shell">
+
+    <header class="app-header">
+        <h1 class="app-title">คำนวณขนาดยา Warfarin</h1>
+        <p class="app-subtitle">
+            <span class="app-name">Warfarin Dose Calculator</span>
+            <span class="app-tagline"> &middot; สำหรับงานเภสัชกรรมคลินิก &middot; ใช้ประกอบการตัดสินใจของผู้สั่งใช้ยา</span>
+        </p>
+    </header>
+
+    <div class="workbench">
+
+        <aside class="side-panel">
+            <nav class="side-card side-nav">
+                <div class="side-card-head">ไปยังส่วน</div>
+                <a href="#section-calc" class="nav-item" data-target="section-calc">
+                    <span class="nav-icon">🧮</span><span>คำนวณขนาดยา</span></a>
+                <a href="#section-regimen" class="nav-item" data-target="section-regimen">
+                    <span class="nav-icon">📝</span><span>สูตรยาที่แนะนำ</span></a>
+                <a href="#section-dispense" class="nav-item" data-target="section-dispense">
+                    <span class="nav-icon">📦</span><span>จำนวนยาที่ต้องจ่าย</span></a>
+                <a href="#section-calendar" class="nav-item" data-target="section-calendar">
+                    <span class="nav-icon">🗓️</span><span>ปฏิทินการกินยา</span></a>
+            </nav>
+        </aside>
+
+        <main class="main-panel">
+
+            <section class="card" id="section-guideline">
+                <div class="card-head"><h2>📋 แนวทางการปรับขนาดยา Warfarin</h2></div>
+                <div id="guidelineBody"></div>
+            </section>
+
+            <section class="card" id="section-calc">
+                <div class="card-head">
+                    <h2>🧮 คำนวณขนาดยา</h2>
+                    <button id="modeToggle" class="btn btn-outline btn-sm" onclick="toggleDoseMode()">🎯 คำนวณจากค่า INR</button>
+                </div>
+
+                <div class="dose-inputs">
+                    <div class="dose-field">
+                        <label for="currentDose">ขนาดยาปัจจุบัน</label>
+                        <div class="stepper">
+                            <button type="button" class="stepper-btn" onclick="stepDose('currentDose', -1)" aria-label="ลดขนาดยาปัจจุบัน">−</button>
+                            <select id="currentDose"></select>
+                            <button type="button" class="stepper-btn" onclick="stepDose('currentDose', 1)" aria-label="เพิ่มขนาดยาปัจจุบัน">+</button>
+                        </div>
+                    </div>
+                    <div class="dose-field" id="targetField">
+                        <label for="targetDose">ขนาดยาที่ต้องการ</label>
+                        <div class="stepper">
+                            <button type="button" class="stepper-btn" onclick="stepDose('targetDose', -1)" aria-label="ลดขนาดยาที่ต้องการ">−</button>
+                            <select id="targetDose"></select>
+                            <button type="button" class="stepper-btn" onclick="stepDose('targetDose', 1)" aria-label="เพิ่มขนาดยาที่ต้องการ">+</button>
+                        </div>
+                    </div>
+                    <div class="dose-field" id="inrField" hidden>
+                        <label for="inrValue">ค่า INR ปัจจุบัน</label>
+                        <input type="number" id="inrValue" step="0.1" min="0" max="20" placeholder="เช่น 4.2" oninput="onInrInput()">
+                    </div>
+                </div>
+
+                <div id="inrPane" hidden>
+                    <div class="inr-targets" id="inrTargets"></div>
+                    <label class="bleed-check">
+                        <input type="checkbox" id="inrBleeding" onchange="onInrInput()">
+                        <span class="bleed-face">🩸 มีเลือดออกรุนแรง (Major bleeding)</span>
+                    </label>
+                    <div class="inr-guidance is-empty" id="inrGuidance"></div>
+                </div>
+
+                <div class="pct-grid" id="manualPane">
+                    <button class="btn-pct is-up" data-pct="5" onclick="applyPercent(5)">+5%</button>
+                    <button class="btn-pct is-up" data-pct="10" onclick="applyPercent(10)">+10%</button>
+                    <button class="btn-pct is-up" data-pct="15" onclick="applyPercent(15)">+15%</button>
+                    <button class="btn-pct is-up" data-pct="20" onclick="applyPercent(20)">+20%</button>
+                    <button class="btn-pct is-down" data-pct="-5" onclick="applyPercent(-5)">−5%</button>
+                    <button class="btn-pct is-down" data-pct="-10" onclick="applyPercent(-10)">−10%</button>
+                    <button class="btn-pct is-down" data-pct="-15" onclick="applyPercent(-15)">−15%</button>
+                    <button class="btn-pct is-down" data-pct="-20" onclick="applyPercent(-20)">−20%</button>
+                </div>
+
+                <div class="result-bar is-same" id="resultBar">
+                    <div class="rb-stats">
+                        <div class="rb-stat">
+                            <span class="rb-stat-label">ขนาดยาเดิม</span>
+                            <span class="rb-stat-value" id="sumCurrent">–</span>
+                            <span class="rb-stat-unit">mg/week</span>
+                        </div>
+                        <span class="rb-sep" aria-hidden="true">→</span>
+                        <div class="rb-stat">
+                            <span class="rb-stat-label">ขนาดยาใหม่</span>
+                            <span class="rb-stat-value is-target" id="sumTarget">–</span>
+                            <span class="rb-stat-unit">mg/week</span>
+                        </div>
+                        <div class="rb-stat is-change">
+                            <span class="rb-stat-label">เปลี่ยนแปลงจริง</span>
+                            <span class="rb-stat-value" id="sumDeltaPct">–</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card" id="section-regimen">
+                <div class="card-head">
+                    <h2>📝 สูตรยาที่แนะนำ</h2>
+                    <button onclick="openCustomModal()" class="btn btn-outline btn-sm">🛠️ กำหนดเอง</button>
+                </div>
+
+                <div class="pill-bar">
+                    <span class="pill-bar-label">เม็ดยาที่มี</span>
+                    <div class="pill-bar-row">
+                        <div class="pill-chips" id="pillSelectors"></div>
+                        <label class="quarter-chip">
+                            <input type="checkbox" id="chk-quarter">
+                            <span class="quarter-chip-face"><span>✂️</span><span class="qc-text">หัก ¼</span></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="regimen-cards" id="regimenCards"></div>
+            </section>
+
+            <section class="card" id="section-dispense">
+                <div class="card-head"><h2>📦 จำนวนยาที่ต้องจ่าย</h2></div>
+
+                <div class="toggle-group" role="radiogroup" aria-label="รูปแบบการหยิบยา">
+                    <input type="radio" id="dispense-combine" name="dispenseType" value="combine" checked>
+                    <label for="dispense-combine" class="toggle-btn">รวมซอง</label>
+                    <input type="radio" id="dispense-separate" name="dispenseType" value="separate">
+                    <label for="dispense-separate" class="toggle-btn">แยกซอง (เต็ม / ครึ่ง)</label>
+                </div>
+
+                <div class="field-row">
+                    <div class="field">
+                        <label for="dispenseDays">จำนวนวัน</label>
+                        <input type="number" id="dispenseDays" min="1" max="365" value="30" oninput="updateDateFromDays()">
+                    </div>
+                    <div class="field">
+                        <label for="dispenseDate">หรือระบุวันนัด</label>
+                        <input type="date" id="dispenseDate" onchange="updateDaysFromDate()">
+                    </div>
+                </div>
+
+                <div id="dispenseResult" class="dispense-list"></div>
+            </section>
+
+            <section class="card" id="section-calendar">
+                <div class="card-head">
+                    <h2>🗓️ ปฏิทินการกินยา</h2>
+                    <button onclick="openPatientModal()" class="btn btn-outline btn-sm">👤 ข้อมูลผู้ป่วย</button>
+                </div>
+
+                <div class="patient-strip" id="patientStrip"></div>
+
+                <div class="field-row">
+                    <div class="field">
+                        <label for="startMonth">ตั้งแต่เดือน</label>
+                        <input type="month" id="startMonth" onchange="onCalendarRangeChange()">
+                    </div>
+                    <div class="field">
+                        <label for="endMonth">ถึงเดือน</label>
+                        <input type="month" id="endMonth" onchange="onCalendarRangeChange()">
+                    </div>
+                    <div class="field">
+                        <label for="paperSize">ขนาดกระดาษ</label>
+                        <select id="paperSize" onchange="saveState()">
+                            <option value="A4">A4 (แนวนอน)</option>
+                            <option value="A5">A5 (แนวนอน)</option>
+                        </select>
+                    </div>
+                    <div class="field field-action">
+                        <button class="btn btn-primary" onclick="printCalendar()">🖨️ พิมพ์ปฏิทิน</button>
+                    </div>
+                </div>
+
+                <div id="calendarPrintArea" class="calendar-area"></div>
+            </section>
+
+        </main>
+    </div>
+
+    <footer class="app-footer">
+        <p>พัฒนาและออกแบบโดย <strong>Endo-Pharma : by เภสัชกรเอ็นดู</strong></p>
+        <p class="footer-muted">นาย ระพีพัฒน์ ศุภโกศล &middot; คณะเภสัชศาสตร์ มหาวิทยาลัยมหาสารคาม</p>
+        <p class="footer-muted">
+            เวอร์ชัน <span id="appVersion">–</span> &middot; สงวนลิขสิทธิ์ © 2026 &middot;
+            <button class="link-btn" onclick="openChangelog()">ประวัติการอัปเดต</button>
+        </p>
+    </footer>
+</div>
+
+<nav class="bottom-bar">
+    <a href="#section-calc" data-target="section-calc"><span>🧮</span><small>คำนวณ</small></a>
+    <a href="#section-regimen" data-target="section-regimen"><span>📝</span><small>สูตรยา</small></a>
+    <a href="#section-dispense" data-target="section-dispense"><span>📦</span><small>จ่ายยา</small></a>
+    <a href="#section-calendar" data-target="section-calendar"><span>🗓️</span><small>ปฏิทิน</small></a>
+</nav>
+
+<!-- กำหนดสูตรยาเอง -->
+<div id="customModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-head">
+            <h3>🛠️ กำหนดสูตรยาเอง</h3>
+            <button class="modal-close" onclick="closeCustomModal()" aria-label="ปิด">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="modal-hint">ตัวเลือกขนาดยาต่อวันสร้างจากเม็ดยาที่มีในโรงพยาบาล</p>
+            <div id="customDaysContainer"></div>
+        </div>
+        <div class="modal-foot modal-foot-stack">
+            <div class="custom-total" id="customTotal">รวม 0.00 mg/week</div>
+            <div class="modal-foot-btns">
+                <button class="btn btn-outline" onclick="closeCustomModal()">ยกเลิก</button>
+                <button class="btn btn-primary" onclick="applyCustomRegimen()">✅ ใช้สูตรนี้</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ข้อมูลผู้ป่วยบนปฏิทิน -->
+<div id="patientModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-head">
+            <h3>👤 ข้อมูลผู้ป่วยบนปฏิทิน</h3>
+            <button class="modal-close" onclick="closePatientModal()" aria-label="ปิด">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="modal-hint">ข้อมูลนี้จะพิมพ์บนหัวกระดาษปฏิทิน เว้นว่างไว้ได้หากต้องการเขียนด้วยลายมือ</p>
+
+            <div class="field">
+                <label for="patientName">ชื่อ – นามสกุลผู้ป่วย</label>
+                <input type="text" id="patientName" placeholder="เช่น นายใจดี มีสุข" oninput="onPatientInput()">
+            </div>
+            <div class="field">
+                <label for="patientHN">HN</label>
+                <input type="text" id="patientHN" placeholder="เช่น 000001" oninput="onPatientInput()">
+            </div>
+            <div class="field">
+                <label>ระดับ INR เป้าหมาย</label>
+                <div class="inr-row">
+                    <input type="number" id="targetINRMin" value="2.0" step="0.1" min="0" placeholder="ต่ำสุด"
+                           oninput="onPatientInput()" onblur="if(this.value!=='') this.value=parseFloat(this.value).toFixed(1)">
+                    <span class="inr-dash">–</span>
+                    <input type="number" id="targetINRMax" value="3.0" step="0.1" min="0" placeholder="สูงสุด"
+                           oninput="onPatientInput()" onblur="if(this.value!=='') this.value=parseFloat(this.value).toFixed(1)">
+                </div>
+            </div>
+        </div>
+        <div class="modal-foot">
+            <button class="btn btn-soft-danger" onclick="clearPatientInfo()">🗑️ ล้างข้อมูล</button>
+            <button class="btn btn-primary" onclick="closePatientModal()">✅ บันทึกและปิด</button>
+        </div>
+    </div>
+</div>
+
+<!-- ประวัติการอัปเดต -->
+<div id="changelogModal" class="modal-overlay">
+    <div class="modal-box modal-lg">
+        <div class="modal-head">
+            <h3>🚀 ประวัติการอัปเดตเว็บ</h3>
+            <button class="modal-close" onclick="closeChangelog()" aria-label="ปิด">&times;</button>
+        </div>
+        <div class="modal-body" id="changelogBody"></div>
+        <div class="modal-foot">
+            <button class="btn btn-primary" onclick="closeChangelog()">🎉 รับทราบ</button>
+        </div>
+    </div>
+</div>
+
+<script src="js/constants.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/state-manager.js"></script>
+<script src="js/pill-graphics.js"></script>
+<script src="js/logic/pill-combos.js"></script>
+<script src="js/logic/regimen.js"></script>
+<script src="js/logic/dispense.js"></script>
+<script src="js/logic/calendar-build.js"></script>
+<script src="js/logic/inr-guidance.js"></script>
+<script src="js/ui-guideline.js"></script>
+<script src="js/ui-inputs.js"></script>
+<script src="js/ui-inr-mode.js"></script>
+<script src="js/ui-regimen.js"></script>
+<script src="js/ui-dispense.js"></script>
+<script src="js/ui-calendar.js"></script>
+<script src="js/ui-modals.js"></script>
+<script src="js/ui-custom-regimen.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

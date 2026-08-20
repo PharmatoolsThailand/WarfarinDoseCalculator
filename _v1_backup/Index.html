@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warfarin Dose Calculator | ระบบคำนวณขนาดยา Warfarin </title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="Assets/CSS/style.css">
+    <link rel="icon" type="image/png" sizes="192x192" href="Assets/Images/logo-endo.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="Assets/Images/logo-endo.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="Assets/Images/logo-endo.png">
+</head>
+<body>
+
+    <div class="main-header">
+        <h1>💊 คำนวณขนาดยา Warfarin</h1>
+        <p>เครื่องมือนี้สร้างขึ้นเพื่ออำนวยความสะดวกในการทำ Regimen ยา Warfarin</p>
+    </div>
+
+    <div class="calculator-container">
+
+        <div class="guideline-section">
+            <div class="guideline-title">📋 ตารางแนวทางการปรับขนาดยา Warfarin</div>
+            <div class="table-responsive">
+                <table class="guideline-table">
+                    <thead>
+                        <tr>
+                            <th>Keep<br>2.0 - 3.0</th>
+                            <th>Keep<br>2.5 - 3.5</th>
+                            <th>แนวทางการปรับยา Warfarin</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>&lt; 1.5</td><td>&lt; 1.9</td><td>เพิ่มขนาดยา 10 - 20 %</td></tr>
+                        <tr><td>1.5 - 1.9</td><td>1.9 - 2.4</td><td>เพิ่มขนาดยา 5 - 10 %</td></tr>
+                        <tr class="highlight-row"><td>2.0 - 3.0</td><td>2.5 - 3.5</td><td><strong>ใช้ยาขนาดเดิม</strong></td></tr>
+                        <tr><td>3.1 - 3.9</td><td>3.6 - 4.5</td><td>ลดขนาดยา 5 - 10 %</td></tr>
+                        <tr><td>4.0 - 4.9</td><td>4.6 - 4.9</td><td>Hold 1 day + ลดขนาดยา 10 %</td></tr>
+                        <tr><td colspan="2" class="merged-cell">5.0 - 8.9 no Bleeding</td><td>Omit 1 - 2 doses + Vitamin K 1 mg orally</td></tr>
+                        <tr><td colspan="2" class="merged-cell">&ge; 9 no Bleeding</td><td>Vitamin K 5 - 10 mg orally</td></tr>
+                        <tr><td colspan="2" class="merged-cell">Major Bleeding<br>Any INR</td><td>Vitamin K 10 mg IV plus FFP<br><span class="text-small">Repeat Vitamin K q 12 hr if needed</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="references">
+                <p><strong>อ้างอิง:</strong></p>
+                <ol>
+                    <li>University of Wisconsin – UW Health. Warfarin Management-Adult-Inpatient Clinical Practice 2011.</li>
+                    <li>สมาคมแพทย์โรคหัวใจแห่งประเทศไทยฯ แนวทางการรักษาผู้ป่วยด้วยยาต้านการแข็งตัวของเลือดชนิดรับประทาน 2553.</li>
+                    <li>สุภารัตน์ วัฒนสมบัติ (โรงพยาบาลเชียงรายประชานุเคราะห์) common pitfall in warfarin management. 2560.</li>
+                </ol>
+            </div>
+        </div>
+        <div class="guideline-title">🧮 เครื่องมือคำนวณขนาดยา Warfarin</div>
+        <div class="input-section">
+            <div class="input-row">
+                <label for="currentDose"><span class="medical-icon">💊</span> ขนาดยาปัจจุบัน <span class="text-red">(เลือก)</span></label>
+                <div class="select-group">
+                    <button class="btn-step" onclick="stepDose('currentDose', -0.5)">-</button>
+                    <select id="currentDose"></select>
+                    <button class="btn-step" onclick="stepDose('currentDose', 0.5)">+</button>
+                    <span class="unit">mg/wk</span>
+                </div>
+            </div>
+
+            <div class="input-row">
+                <label for="targetDose"><span class="medical-icon">💊</span> ขนาดยาที่ต้องการ <span class="text-red">(เลือก)</span></label>
+                <div class="select-group">
+                    <button class="btn-step" onclick="stepDose('targetDose', -0.5)">-</button>
+                    <select id="targetDose"></select>
+                    <button class="btn-step" onclick="stepDose('targetDose', 0.5)">+</button>
+                    <span class="unit">mg/wk</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-grid">
+            <button class="btn-pct btn-increase" onclick="applyPercent(5)">+5%</button>
+            <button class="btn-pct btn-increase" onclick="applyPercent(10)">+10%</button>
+            <button class="btn-pct btn-increase" onclick="applyPercent(15)">+15%</button>
+            <button class="btn-pct btn-increase" onclick="applyPercent(20)">+20%</button>
+
+            <button class="btn-pct btn-decrease" onclick="applyPercent(-5)">-5%</button>
+            <button class="btn-pct btn-decrease" onclick="applyPercent(-10)">-10%</button>
+            <button class="btn-pct btn-decrease" onclick="applyPercent(-20)">-20%</button>
+            <button class="btn-pct btn-decrease" onclick="applyPercent(-15)">-15%</button>
+        </div>
+
+        <div class="results-container">
+            <div class="result-card">
+                <p>ความเปลี่ยนแปลงจริง (%)</p>
+                <h3 id="actualPercent">-</h3>
+            </div>
+            <div class="result-card">
+                <p>ขนาดยาที่เปลี่ยนแปลง (mg/week)</p>
+                <h3 id="newDoseDisplay">-</h3>
+            </div>
+        </div>
+
+        <div class="regimen-wrapper">
+            <h3 class="regimen-title">📝 Regimen ที่แนะนำ</h3>
+
+            <div class="pill-selection-text">เลือกขนาดยาที่มีในโรงพยาบาล</div>
+            <div class="pill-selectors">
+                <label class="pill-checkbox-label active" id="lbl-pill-1">
+                    <input type="checkbox" id="chk-1" checked onchange="updatePillState(1)">
+                    <div class="pill-icon" style="background-color: #ffffff; border-color: #cbd5e1;"></div>
+                    <span>เม็ด 1 mg</span>
+                </label>
+                <label class="pill-checkbox-label active" id="lbl-pill-2">
+                    <input type="checkbox" id="chk-2" checked onchange="updatePillState(2)">
+                    <div class="pill-icon" style="background-color: #f28b30;"></div>
+                    <span>เม็ด 2 mg</span>
+                </label>
+                <label class="pill-checkbox-label active" id="lbl-pill-3">
+                    <input type="checkbox" id="chk-3" checked onchange="updatePillState(3)">
+                    <div class="pill-icon" style="background-color: #0b5394;"></div>
+                    <span>เม็ด 3 mg</span>
+                </label>
+                <label class="pill-checkbox-label active" id="lbl-pill-5">
+                    <input type="checkbox" id="chk-5" checked onchange="updatePillState(5)">
+                    <div class="pill-icon" style="background-color: #e84c95;"></div>
+                    <span>เม็ด 5 mg</span>
+                </label>
+                <label class="quarter-toggle">
+                    <input type="checkbox" id="chk-quarter" onchange="updateRegimens(parseFloat(document.getElementById('targetDose').value))">
+                    <div class="quarter-btn-content">
+                        <span class="quarter-icon">✂️</span>
+                        <span>อนุญาตหัก 1/4 เม็ด</span>
+                    </div>
+                </label>
+            </div>
+
+            <div class="table-responsive">
+                <table class="regimen-table">
+                    <thead>
+                        <tr>
+                            <th>เลือก</th>
+                            <th>จันทร์</th>
+                            <th>อังคาร</th>
+                            <th>พุธ</th>
+                            <th>พฤหัส</th>
+                            <th>ศุกร์</th>
+                            <th>เสาร์</th>
+                            <th>อาทิตย์</th>
+                        </tr>
+                    </thead>
+                    <tbody id="regimen-tbody">
+                        </tbody>
+                </table>
+                    <div class="table-responsive">
+                        <table class="regimen-table"></table>
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="btn-custom-regimen" onclick="openCustomModal()">
+                            <span class="icon-anim">🛠️</span> กำหนดสูตรยาเอง (Manual)
+                        </button>
+                        ㅤ
+                    </div>
+            </div>
+        </div>
+
+        <div class="dispense-wrapper">
+            <h3 class="regimen-title">📦 คำนวณจำนวนยาที่ต้องจ่าย</h3>
+
+            <div class="dispense-options">
+                <label class="dispense-options-label">รูปแบบการหยิบยา:</label>
+                <div class="toggle-group">
+                    <input type="radio" id="dispense-combine" name="dispenseType" value="combine" checked onchange="calculateDispense()">
+                    <label for="dispense-combine" class="toggle-btn">รวมซอง (ปกติ)</label>
+
+                    <input type="radio" id="dispense-separate" name="dispenseType" value="separate" onchange="calculateDispense()">
+                    <label for="dispense-separate" class="toggle-btn">แยกซอง (เต็มเม็ด / ครึ่งเม็ด)</label>
+                </div>
+            </div>
+
+            <div class="dispense-inputs">
+                <div class="input-group">
+                    <label for="dispenseDays">จำนวนวัน (วัน)</label>
+                    <input type="number" id="dispenseDays" min="1" value="30" oninput="updateDateFromDays()">
+                </div>
+                <div class="input-group">
+                    <label for="dispenseDate">หรือระบุวันนัด</label>
+                    <input type="date" id="dispenseDate" onchange="updateDaysFromDate()">
+                </div>
+            </div>
+
+            <div id="dispenseResult" class="dispense-result-container">
+                </div>
+        </div>
+        <div class="calendar-wrapper no-print">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px;">
+                <h3 class="regimen-title" style="border: none; margin: 0; padding: 0;">🗓️ ปฏิทินการกินยา</h3>
+                <button onclick="openCalendarSettingsModal()" style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px 12px; font-family: 'Sarabun', sans-serif; font-size: 13px; color: #475569; cursor: pointer; font-weight: 500; transition: all 0.2s;">
+                    ⚙️ เพิ่มข้อมูลผู้ป่วย/ปรับเป้าหมาย INR
+                </button>
+            </div>
+
+            <div class="dispense-inputs" style="align-items: flex-end; flex-wrap: wrap; gap: 15px;">
+                <div class="input-group" style="flex: 1; min-width: 120px;">
+                    <label for="startMonth">ตั้งแต่เดือน</label>
+                    <input type="month" id="startMonth" onchange="generateCalendar()">
+                </div>
+                <div class="input-group" style="flex: 1; min-width: 120px;">
+                    <label for="endMonth">ถึงเดือน</label>
+                    <input type="month" id="endMonth" onchange="generateCalendar()">
+                </div>
+                <div class="input-group" style="flex: 1; min-width: 120px;">
+                    <label for="paperSize">ขนาดกระดาษ</label>
+                    <select id="paperSize">
+                        <option value="A4">A4 (แนวนอน)</option>
+                        <option value="A5">A5 (แนวนอน)</option>
+                    </select>
+                </div>
+                <div class="input-group" style="flex: 1; min-width: 120px;">
+                    <button class="btn-pct btn-increase" style="height: 42px; width: 100%;" onclick="printCalendar()">🖨️ พิมพ์ปฏิทิน</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="calendar-print-area">
+            <div style="text-align:center; padding: 40px; color:#64748b; font-size: 16px;">
+                กรุณากด "คำนวณขนาดยา" ก่อนเพื่อสร้างปฏิทินครับ 💊
+            </div>
+        </div>
+
+    </div>
+
+    <footer class="main-footer">
+        <div class="footer-content">
+            <p>พัฒนาและออกแบบโดย: <span class="highlight-green">Endo-Pharma : by เภสัชกรเอ็นดู</span></p>
+            <p class="developer-info">ผู้พัฒนา นาย ระพีพัฒน์ ศุภโกศล การศึกษาระดับปริญญาตรี คณะเภสัชศาสตร์ มหาวิทยาลัยมหาสารคาม</p>
+            <p class="footer-note">เครื่องมือนี้สร้างขึ้นเพื่ออำนวยความสะดวกในการทำ Regimen ยา Warfarin</p>
+            <p class="footer-version">เวอร์ชัน 1.1.0 | สงวนลิขสิทธิ์ © 2026</p>
+        </div>
+    </footer>
+
+    <div id="changelogModal" class="modal-overlay">
+        <div class="changelog-modal">
+            <div class="modal-header">
+                <h2>🚀 ประวัติการอัปเดตเว็บ (Changelog)</h2>
+                <button class="close-modal" onclick="closeChangelog()">&times;</button>
+            </div>
+            <div class="modal-body">
+
+                 <div class="version-header">
+                    <span class="version-title">🌼 เวอร์ชัน 1.3.0</span> <span class="version-date">(25 เมษายน 2569)</span>
+                </div>
+                <div class="version-box box-dashed">
+                    <ul>
+                        <li><strong>เพิ่มยาเม็ด 1 mg (สีขาว) </strong> เพิ่มขนาดยา 1 mg พร้อมทำขอบสีเทาเข้มเพื่อให้เห็นชัดเจนบนพื้นขาว</li>
+                        <li><strong>เพิ่มระบบตั้งค่าข้อมูลผู้ป่วย</strong> เพิ่มปุ่มเปิดหน้าต่าง Popup สำหรับกรอก ชื่อ-นามสกุล, HN, และเป้าหมาย INR</li>
+                    </ul>
+                </div>
+
+                <div class="version-header">
+                    <span class="version-title">🍀 เวอร์ชัน 1.2.0</span> <span class="version-date">(22 เมษายน 2569)</span>
+                </div>
+                <div class="version-box box-dashed">
+                    <ul>
+                        <li><strong>เพิ่มฟังก์ชันกำหนด Regimen เอง </strong> สามารถกำหนดขนาดยาต่อวันเอง และกำหนดวันงดยาเองได้ โดยตัวเลขจะซิงค์กับทุกจุดของเว็บ รวมทั้งปฏิทินการรับประทานยาด้วย</li>
+                        <li>เ<strong>แก้ไขบัค</strong> ทำให้การโชว์เลขขนาดยาถูกต้องและเหมาะสมขึ้น</li>
+                    </ul>
+                </div>
+
+                <div class="version-header">
+                    <span class="version-title">🌱 เวอร์ชัน 1.1.0</span> <span class="version-date">(19 เมษายน 2569)</span>
+                </div>
+                <div class="version-box box-dashed">
+                    <ul>
+                        <li>เพิ่มฟังก์ชัน <strong>การหักแบ่ง 1/4 เม็ด</strong> สำหรับการจัด Regimen ยา</li>
+                        <li>เพิ่มระบบ <strong>พิมพ์ปฏิทินการกินยา</strong> สำหรับแจกให้ผู้ป่วยกลับบ้าน สำหรับกระดาษ A4 (แนวนอน) และ A5 (แนวนอน) เท่านั้น</li>
+                    </ul>
+                </div>
+
+                <div class="version-header">
+                    <span class="version-title">🥚 เวอร์ชัน 1.0.0</span> <span class="version-date">(18 เมษายน 2569)</span>
+                </div>
+                <div class="version-box box-dashed">
+                    <ul>
+                        <li>เปิดตัวเครื่องมือ<strong>คำนวณขนาดยา Warfarin</strong></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-acknowledge" onclick="closeChangelog()">🎉 รับทราบและเข้าสู่ระบบ</button>
+            </div>
+        </div>
+    </div>
+    <div id="customRegimenModal" class="modal-overlay">
+        <div class="changelog-modal" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>🛠️ กำหนดสูตรยาเอง</h2>
+                <button class="close-modal" onclick="closeCustomModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <p style="margin-top: 0; color: #64748b; font-size: 14px; text-align: center;">ตัวเลือกจะอ้างอิงจากเม็ดยาที่มีในโรงพยาบาล</p>
+                <div id="custom-days-container" style="display: flex; flex-direction: column; gap: 10px;">
+                    </div>
+            </div>
+            <div class="modal-footer" style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                <h3 id="custom-total-display" style="margin: 0; color: var(--primary-color); font-size: 22px;">รวม: 0.00 mg/week</h3>
+                <button class="btn-acknowledge" onclick="applyCustomRegimen()">✅ บันทึกและใช้สูตรนี้</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="calendarSettingsModal" class="modal-overlay">
+        <div class="changelog-modal" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>⚙️ ข้อมูลผู้ป่วยบนปฏิทิน</h2>
+                <button class="close-modal" onclick="closeCalendarSettingsModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 24px; overflow-y: visible;">
+                <p style="margin-top: 0; color: #64748b; font-size: 14px; margin-bottom: 20px;">ข้อมูลนี้จะถูกนำไปแสดงบนหัวกระดาษปฏิทิน (เว้นว่างไว้ได้หากไม่ต้องการพิมพ์)</p>
+
+                <div class="dispense-inputs" style="flex-direction: column; gap: 16px; margin-bottom: 0;">
+                    <div class="input-group" style="width: 100%;">
+                        <label for="patientName" style="font-size: 14px; color: #334155; font-weight: 600; margin-bottom: 6px;">ชื่อ-นามสกุล ผู้ป่วย</label>
+                        <input type="text" id="patientName" placeholder="เช่น นายใจดี มีสุข" oninput="generateCalendar()" style="width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 12px; font-size: 15px;">
+                    </div>
+
+                    <div class="input-group" style="width: 100%;">
+                        <label for="patientHN" style="font-size: 14px; color: #334155; font-weight: 600; margin-bottom: 6px;">HN</label>
+                        <input type="text" id="patientHN" placeholder="เช่น 000001" oninput="generateCalendar()" style="width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 12px; font-size: 15px;">
+                    </div>
+
+                    <div class="input-group" style="width: 100%;">
+                        <label style="font-size: 14px; color: #334155; font-weight: 600; margin-bottom: 6px;">ระดับ INR เป้าหมาย</label>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <input type="number" id="targetINRMin" value="2.0" step="0.1" min="0" placeholder="ต่ำสุด"
+                                   oninput="generateCalendar()"
+                                   onblur="if(this.value !== '') this.value = parseFloat(this.value).toFixed(1)"
+                                   class="inr-input">
+                            <span style="color: #94a3b8; font-weight: bold;">-</span>
+                            <input type="number" id="targetINRMax" value="3.0" step="0.1" min="0" placeholder="สูงสุด"
+                                   oninput="generateCalendar()"
+                                   onblur="if(this.value !== '') this.value = parseFloat(this.value).toFixed(1)"
+                                   class="inr-input">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: center; padding: 16px 24px; gap: 12px;">
+                <button class="btn-pct" style="background-color: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; flex: 1; max-width: 140px;" onclick="clearCalendarSettings()">🗑️ ล้างข้อมูล</button>
+                <button class="btn-acknowledge" style="flex: 1; max-width: 160px; margin: 0;" onclick="closeCalendarSettingsModal()">✅ บันทึกและปิด</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="Assets/JS/script.js"></script>
+
+    <div id="visitorBadge" hidden title="จำนวนผู้เข้าชมทั้งหมด"
+         style="position:fixed;bottom:12px;left:12px;z-index:500;display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:999px;background:rgba(13,123,108,.92);color:#fff;font:600 12px/1 sans-serif;box-shadow:0 4px 12px -4px rgba(15,23,42,.35);pointer-events:none;user-select:none;">
+      👁 <span id="visitorCount">–</span>
+    </div>
+    <script>
+    (function () {
+      var CODE = 'warfarin';
+      if (location.protocol === 'file:') return;
+      var s = document.createElement('script');
+      s.async = true; s.src = 'https://gc.zgo.at/count.js';
+      s.setAttribute('data-goatcounter', 'https://' + CODE + '.goatcounter.com/count');
+      document.head.appendChild(s);
+      fetch('https://' + CODE + '.goatcounter.com/counter/TOTAL.json')
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          var v = d && (d.count_unique || d.count); if (!v) return;
+          var b = document.getElementById('visitorBadge'), n = document.getElementById('visitorCount');
+          if (b && n) { n.textContent = v; b.hidden = false; }
+        }).catch(function () {});
+    })();
+    </script>
+</body>
+</html>
