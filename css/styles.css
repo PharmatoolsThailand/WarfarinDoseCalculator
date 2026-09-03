@@ -149,6 +149,15 @@ input:focus, select:focus {
     box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
 }
 
+/* ไอคอนปฏิทินอยู่ท้ายกล่องเนื้อหา ถ้าไม่ลด padding ขวาและเว้นระยะ มันจะชิดข้อความจนอ่านยากบนจอแคบ */
+input[type="date"], input[type="month"] { padding-right: 8px; }
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator {
+    margin-left: 8px; opacity: 0.55; cursor: pointer;
+}
+input[type="date"]:hover::-webkit-calendar-picker-indicator,
+input[type="month"]:hover::-webkit-calendar-picker-indicator { opacity: 1; }
+
 .inr-row { display: flex; align-items: center; gap: 10px; }
 .inr-dash { color: #94a3b8; font-weight: 700; }
 
@@ -655,21 +664,36 @@ input:focus, select:focus {
 .bottom-bar a small { font-size: 11px; font-weight: 600; }
 .bottom-bar a.is-active { color: var(--primary); border-top-color: var(--primary); }
 
+/* ── ป้ายจำนวนผู้เข้าชม ── */
+.visitor-badge {
+    position: fixed; bottom: 12px; left: 12px; z-index: 500;
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 11px; border-radius: 999px;
+    background: rgba(15, 118, 110, 0.92); color: #fff;
+    font-size: 12px; font-weight: 600; line-height: 1;
+    box-shadow: 0 4px 12px -4px rgba(15, 23, 42, 0.35);
+    pointer-events: none; user-select: none;
+}
+
 /* ── ท้ายเว็บ ── */
 .app-footer { text-align: center; margin-top: 24px; padding: 16px; font-size: 13px; color: var(--muted); }
 .app-footer p { margin: 3px 0; }
 .footer-muted { color: #94a3b8; font-size: 12px; }
 
 /* ═══════════ จอแคบ ═══════════ */
+/* แท็บเล็ตใช้โครงเดียวกับมือถือ — แถบล่างแทนแผงข้าง และช่องกรอกเรียงสองคอลัมน์ทุกแถว
+   ไม่งั้นแถวที่มี 2 ช่องจะกว้างเป็นสองเท่าของแถวที่มี 4 ช่อง ดูขนาดไม่เข้ากัน */
 @media (max-width: 1024px) {
     .workbench { grid-template-columns: 1fr; }
-    .side-panel { position: static; }
-    .side-nav { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-    .nav-item {
-        flex-direction: column; gap: 4px; text-align: center; font-size: 12px;
-        border-left: 0; border-bottom: 3px solid transparent; border-radius: 10px 10px 0 0;
-    }
-    .nav-item.is-active { border-left: 0; border-bottom-color: var(--primary); }
+    .side-panel { display: none; }
+    .bottom-bar { display: flex; }
+    body { padding-bottom: 76px; }
+
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; align-items: end; }
+    .field-action .btn { height: 44px; }
+
+    /* ยกป้ายขึ้นเหนือแถบล่างที่ตรึงอยู่ ไม่งั้นถูกบัง */
+    .visitor-badge { bottom: calc(70px + env(safe-area-inset-bottom)); }
 }
 
 @media (max-width: 700px) {
@@ -678,9 +702,6 @@ input:focus, select:focus {
     .app-header { padding: 14px 16px; }
     .app-title { font-size: 18px; }
     .app-tagline { display: none; }
-
-    /* ทางลัดซ้ำกับแถบล่างที่ตรึงอยู่แล้ว */
-    .side-panel { display: none; }
 
     .card { padding: 14px 14px; border-radius: var(--radius); }
 
@@ -717,8 +738,12 @@ input:focus, select:focus {
     .rc-dose { font-size: 11px; }
 
     .field-row { gap: 10px; }
-    .field-row .field { flex: 1 1 140px; }
     .toggle-btn { font-size: 12px; padding: 10px 6px; }
+
+    /* ชื่อเดือนไทยที่ยาวที่สุด (พฤศจิกายน / กุมภาพันธ์) ชนไอคอนปฏิทินบนจอแคบ */
+    input[type="date"], input[type="month"] { font-size: 13px; padding-left: 10px; padding-right: 6px; }
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="month"]::-webkit-calendar-picker-indicator { margin-left: 6px; }
 
     .dl-text { gap: 4px 8px; }
     .dl-days, .dl-note { font-size: 12px; }

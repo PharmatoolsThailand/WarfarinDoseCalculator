@@ -138,6 +138,7 @@ function initApp() {
     watchCalendarWidth();
 
     document.getElementById('appVersion').textContent = APP_VERSION;
+    initVisitorCounter();
 
     if (!hasSeenChangelog()) openChangelog();
 }
