@@ -177,13 +177,13 @@
                 <div class="patient-strip" id="patientStrip"></div>
 
                 <div class="field-row">
-                    <div class="field">
-                        <label for="startMonth">ตั้งแต่เดือน</label>
-                        <input type="month" id="startMonth" onchange="onCalendarRangeChange()">
-                    </div>
-                    <div class="field">
-                        <label for="endMonth">ถึงเดือน</label>
-                        <input type="month" id="endMonth" onchange="onCalendarRangeChange()">
+                    <div class="field field-wide">
+                        <label for="startMonth">ช่วงเดือนที่พิมพ์</label>
+                        <div class="range-box">
+                            <input type="month" id="startMonth" aria-label="ตั้งแต่เดือน" onchange="onCalendarRangeChange()">
+                            <span class="range-dash" aria-hidden="true">–</span>
+                            <input type="month" id="endMonth" aria-label="ถึงเดือน" onchange="onCalendarRangeChange()">
+                        </div>
                     </div>
                     <div class="field">
                         <label for="paperSize">ขนาดกระดาษ</label>

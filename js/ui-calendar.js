@@ -119,7 +119,8 @@ function buildPrintDocument(paperSize, calendarHTML) {
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>
 <style>
-html, body { margin:0; padding:0; background:#f1f5f9; font-family:'Sarabun', sans-serif; }
+html, body { margin:0; padding:0; background:#f1f5f9; font-family:'Sarabun', sans-serif;
+             -webkit-text-size-adjust:100%; text-size-adjust:100%; }
 #capture-source { position:absolute; top:0; left:0; z-index:1; }
 #print-images { display:none; background:#fff; width:100%; position:relative; z-index:10; }
 #loading { position:fixed; inset:0; background:#fff; z-index:9999;

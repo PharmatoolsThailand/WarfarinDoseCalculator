@@ -23,7 +23,9 @@
 /* จำเป็นเพราะหลายคลาสตั้ง display เอง ซึ่งจะทับ hidden ของเบราว์เซอร์ */
 [hidden] { display: none !important; }
 
-html { scroll-behavior: smooth; }
+/* iOS ขยายตัวอักษรเองในกล่องที่กว้างไม่เท่าจอ (ปฏิทินใช้ zoom + min-width 560px)
+   ทำให้หัวปฏิทินตัวโตผิดสัดส่วนกับตาราง — ต้องปิดทิ้งทั้งหน้า */
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .card { scroll-margin-top: 14px; }
 
 body {
@@ -131,11 +133,27 @@ h1, h2, h3 { margin: 0; color: var(--ink); }
 .card-head h2 { font-size: 17px; font-weight: 700; }
 
 /* ── ฟอร์ม ── */
-.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; }
-.field label { font-size: 13px; font-weight: 600; color: var(--ink); }
-.field-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+/* เว้นระยะด้วย padding ของลูกแทน gap — WebView บนมือถือรุ่นเก่าไม่รองรับ gap ของ flex
+   ทำให้ช่องกรอกสองช่องมาชนกันจนดูเหมือนกล่องเดียว */
+.field { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.field label { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+.field-row { display: flex; flex-wrap: wrap; align-items: flex-end; margin: -6px; }
+.field-row > * { padding: 6px; }
+/* ช่องคู่กินที่มากกว่าช่องเดี่ยว ไม่งั้นชื่อเดือนไทยที่ยาวถูกตัดบนจอกว้าง */
+.field-wide { flex: 2; }
 .field-action { justify-content: flex-end; }
 .field-action .btn { width: 100%; height: 42px; }
+
+/* ช่วงค่าสองช่องในกรอบเดียว — ใช้กับช่วงเดือนของปฏิทิน */
+.range-box {
+    display: flex; align-items: center;
+    border: 1px solid #cbd5e1; border-radius: 8px; background: #fff;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.range-box:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15); }
+.range-box input { border: none; background: transparent; text-align: center; min-width: 0; }
+.range-box input:focus { box-shadow: none; }
+.range-dash { flex: 0 0 auto; padding: 0 2px; color: #94a3b8; font-weight: 700; }
 
 input[type="text"], input[type="number"], input[type="date"], input[type="month"], select {
     padding: 10px 12px;
@@ -162,8 +180,8 @@ input[type="month"]:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 .inr-dash { color: #94a3b8; font-weight: 700; }
 
 /* ── ตัวปรับค่าขึ้น-ลง ── */
-.stepper { display: flex; align-items: stretch; gap: 6px; }
-.stepper select { flex: 1; text-align: center; font-size: 16px; font-weight: 600; }
+.stepper { display: flex; align-items: stretch; }
+.stepper select { flex: 1; margin: 0 6px; text-align: center; font-size: 16px; font-weight: 600; }
 .stepper-btn {
     width: 40px; flex-shrink: 0;
     background: var(--primary-soft); border: 1px solid var(--primary-line); border-radius: 8px;
@@ -173,8 +191,8 @@ input[type="month"]:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 .stepper-btn:hover { background: var(--primary); color: #fff; }
 
 .dose-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
-.dose-field { display: flex; flex-direction: column; gap: 6px; }
-.dose-field label { font-size: 13px; font-weight: 600; color: var(--ink); }
+.dose-field { display: flex; flex-direction: column; }
+.dose-field label { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
 
 /* ── ปุ่มเปอร์เซ็นต์ ── */
 .pct-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
@@ -690,6 +708,7 @@ input[type="month"]:hover::-webkit-calendar-picker-indicator { opacity: 1; }
     body { padding-bottom: 76px; }
 
     .field-row { display: grid; grid-template-columns: 1fr 1fr; align-items: end; }
+    .field-wide { grid-column: 1 / -1; }
     .field-action .btn { height: 44px; }
 
     /* ยกป้ายขึ้นเหนือแถบล่างที่ตรึงอยู่ ไม่งั้นถูกบัง */
@@ -737,8 +756,17 @@ input[type="month"]:hover::-webkit-calendar-picker-indicator { opacity: 1; }
     .rc-day-name { font-size: 10px; }
     .rc-dose { font-size: 11px; }
 
-    .field-row { gap: 10px; }
+    .field-row { margin: -5px; }
+    .field-row > * { padding: 5px; }
     .toggle-btn { font-size: 12px; padding: 10px 6px; }
+
+    /* ตารางแนวทางต้องอ่านครบในจอเดียว ไม่ต้องเลื่อนซ้ายขวา */
+    .guideline-table { min-width: 0; table-layout: fixed; }
+    .guideline-table th, .guideline-table td { padding: 7px 4px; font-size: 12px; }
+    .guideline-table th { font-size: 11.5px; }
+    /* table-layout: fixed ยึดความกว้างจากแถวหัวตารางอย่างเดียว */
+    .guideline-table th:nth-child(1), .guideline-table th:nth-child(2) { width: 21%; }
+    .text-small { font-size: 11px; }
 
     /* ชื่อเดือนไทยที่ยาวที่สุด (พฤศจิกายน / กุมภาพันธ์) ชนไอคอนปฏิทินบนจอแคบ */
     input[type="date"], input[type="month"] { font-size: 13px; padding-left: 10px; padding-right: 6px; }
